@@ -1,0 +1,31 @@
+{
+  "nodes": [
+    {"id": "PERSON_RAHUL_SHARMA", "label": "Person", "name": "Rahul Sharma", "properties": {"risk_tag": "HIGH", "role": "Suspect"}},
+    {"id": "PERSON_AMIT_VERMA", "label": "Person", "name": "Amit Verma", "properties": {"risk_tag": "MEDIUM", "role": "Associate"}},
+    {"id": "PERSON_SUNIL_KUMAR", "label": "Person", "name": "Sunil Kumar", "properties": {"risk_tag": "HIGH", "role": "Suspect"}},
+    {"id": "PERSON_VIKAS_SINGH", "label": "Person", "name": "Vikas Singh", "properties": {"risk_tag": "LOW", "role": "Person of interest"}},
+    {"id": "LOC_SECTOR_62", "label": "Location", "name": "Sector 62", "properties": {"city": "Noida"}},
+    {"id": "CASE_FIR_2024_102", "label": "Case", "name": "FIR-2024-102", "properties": {"case_code": "FIR-2024-102"}},
+    {"id": "ACC_987654321", "label": "BankAccount", "name": "ACC987654321", "properties": {"account_number": "ACC987654321"}},
+    {"id": "VEH_UP14AB1234", "label": "Vehicle", "name": "UP14AB1234", "properties": {"registration": "UP14AB1234"}}
+  ],
+  "edges": [
+    {"source": "PERSON_RAHUL_SHARMA", "target": "PERSON_AMIT_VERMA", "relationship": "CALLS", "properties": {"frequency": 120, "timestamp": "2024-06-10T10:00:00"}},
+    {"source": "PERSON_RAHUL_SHARMA", "target": "PERSON_SUNIL_KUMAR", "relationship": "CALLS", "properties": {"frequency": 12}},
+    {"source": "PERSON_AMIT_VERMA", "target": "PERSON_VIKAS_SINGH", "relationship": "CALLS", "properties": {"frequency": 8}},
+    {"source": "PERSON_SUNIL_KUMAR", "target": "PERSON_VIKAS_SINGH", "relationship": "CALLS", "properties": {"frequency": 2}},
+    {"source": "PERSON_VIKAS_SINGH", "target": "PERSON_RAHUL_SHARMA", "relationship": "CALLS", "properties": {"frequency": 2}},
+    {"source": "PERSON_AMIT_VERMA", "target": "PERSON_SUNIL_KUMAR", "relationship": "CALLS", "properties": {"frequency": 2}},
+    {"source": "PERSON_RAHUL_SHARMA", "target": "ACC_987654321", "relationship": "TRANSFERRED_MONEY", "properties": {"amount": 450000, "tx_id": "TX-1004"}},
+    {"source": "PERSON_AMIT_VERMA", "target": "ACC_987654321", "relationship": "TRANSFERRED_MONEY", "properties": {"amount": 15000, "tx_id": "TX-1005"}},
+    {"source": "PERSON_SUNIL_KUMAR", "target": "ACC_987654321", "relationship": "TRANSFERRED_MONEY", "properties": {"amount": 18000, "tx_id": "TX-1006"}},
+    {"source": "PERSON_VIKAS_SINGH", "target": "ACC_987654321", "relationship": "TRANSFERRED_MONEY", "properties": {"amount": 9000, "tx_id": "TX-1007"}},
+    {"source": "PERSON_AMIT_VERMA", "target": "ACC_987654321", "relationship": "TRANSFERRED_MONEY", "properties": {"amount": 11000, "tx_id": "TX-1008"}},
+    {"source": "PERSON_SUNIL_KUMAR", "target": "ACC_987654321", "relationship": "TRANSFERRED_MONEY", "properties": {"amount": 12000, "tx_id": "TX-1009"}},
+    {"source": "PERSON_RAHUL_SHARMA", "target": "LOC_SECTOR_62", "relationship": "LOCATED_AT", "properties": {}},
+    {"source": "PERSON_AMIT_VERMA", "target": "LOC_SECTOR_62", "relationship": "LOCATED_AT", "properties": {}},
+    {"source": "PERSON_SUNIL_KUMAR", "target": "LOC_SECTOR_62", "relationship": "LOCATED_AT", "properties": {}},
+    {"source": "PERSON_RAHUL_SHARMA", "target": "CASE_FIR_2024_102", "relationship": "INVOLVED_IN", "properties": {"role": "Suspect"}},
+    {"source": "PERSON_RAHUL_SHARMA", "target": "VEH_UP14AB1234", "relationship": "OPERATES", "properties": {}}
+  ]
+}
