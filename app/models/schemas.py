@@ -40,6 +40,15 @@ class IngestTextResponse(BaseModel):
     entities: List[Dict[str, Any]]
     relationships: List[Dict[str, Any]]
 
+class IngestFileResponse(BaseModel):
+    status: str
+    filename: str
+    extracted_text: str
+    extracted_entities_count: int
+    extracted_relations_count: int
+    entities: List[Dict[str, Any]]
+    relationships: List[Dict[str, Any]]
+
 class SearchQuery(BaseModel):
     query: str
     node_type: Optional[str] = None

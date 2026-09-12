@@ -1,12 +1,14 @@
 import json
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from typing import Optional
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 
 from app.core.graph_engine import BaseGraphEngine, get_graph_engine
 from app.core.nlp_extractor import NLPExtractor
+from app.core.document_parser import DocumentParser
 from app.models.graph_models import Edge, EdgeType, Node, NodeType
-from app.models.schemas import IngestTextRequest
+from app.models.schemas import IngestTextRequest, IngestTextResponse, IngestFileResponse
 
 router = APIRouter(prefix="/ingest", tags=["ingestion"])
 
@@ -95,3 +97,64 @@ def ingest_text(request: IngestTextRequest):
         if graph.get_node(item["source"]) and graph.get_node(item["target"]):
             graph.add_edge(Edge(item["source"], item["target"], _edge_type(item["relationship"]), item.get("properties", {})))
     return {"status": "success", "extracted_entities_count": len(entities), "extracted_relations_count": len(relationships), "entities": entities, "relationships": relationships}
+ 
+ 
+@router.post("/file", response_model=IngestFileResponse)
+async def ingest_file(
+    file: UploadFile = File(..., description="FIR report file (PDF or Image format: png, jpg, jpeg, webp, bmp)"),
+    source_case_id: Optional[str] = Form(None)
+):
+    """Upload a scanned copy of an FIR (PDF or Image), extract text via OCR, parse entities with NLP, and merge into graph."""
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    parser = DocumentParser()
+    try:
+        extracted_text = await parser.extract_text_from_file(file_bytes, file.filename)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Failed to process document: {str(ex)}")
+
+    if not extracted_text.strip():
+        raise HTTPException(status_code=422, detail="No readable text could be extracted from the uploaded document.")
+
+    extractor = NLPExtractor()
+    entities = extractor.extract_entities(extracted_text)
+    relationships = extractor.extract_triplets(extracted_text, entities)
+    graph = get_graph_engine()
+
+    for item in entities:
+        props = dict(item.get("properties", {}))
+        props["source_file"] = file.filename
+        if source_case_id:
+            props["case_id"] = source_case_id
+        graph.add_node(Node(item["id"], _label(item["label"]), item["name"], props))
+
+    for item in relationships:
+        if graph.get_node(item["source"]) and graph.get_node(item["target"]):
+            props = dict(item.get("properties", {}))
+            props["source_file"] = file.filename
+            graph.add_edge(Edge(item["source"], item["target"], _edge_type(item["relationship"]), props))
+
+    if source_case_id:
+        case_node_id = f"CASE_{source_case_id.upper()}"
+        if not graph.get_node(case_node_id):
+            graph.add_node(Node(case_node_id, NodeType.CASE, source_case_id.upper(), {"case_code": source_case_id.upper()}))
+        for ent in entities:
+            if ent["label"] == NodeType.PERSON.value:
+                graph.add_edge(Edge(ent["id"], case_node_id, EdgeType.INVOLVED_IN, {"source": "fir_upload"}))
+
+    return {
+        "status": "success",
+        "filename": file.filename,
+        "extracted_text": extracted_text,
+        "extracted_entities_count": len(entities),
+        "extracted_relations_count": len(relationships),
+        "entities": entities,
+        "relationships": relationships
+    }

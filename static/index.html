@@ -755,6 +755,97 @@
             color: var(--muted);
         }
 
+        
+        /* Modal Tabs & Dropzone Styles */
+        .modal-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--line);
+            margin: 16px 0 18px;
+            padding-bottom: 2px;
+        }
+
+        .modal-tab-btn {
+            padding: 8px 14px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .modal-tab-btn:hover {
+            color: #fff;
+        }
+
+        .modal-tab-btn.active {
+            color: var(--teal);
+            border-bottom-color: var(--teal);
+        }
+
+        .dropzone {
+            border: 2px dashed #304e70;
+            background: #0b1726;
+            border-radius: 9px;
+            padding: 26px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 12px 0 16px;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--teal);
+            background: #0f2238;
+        }
+
+        .dropzone-icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+            color: var(--teal);
+        }
+
+        .dropzone-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #e5f0fc;
+            margin-bottom: 4px;
+        }
+
+        .dropzone-sub {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .file-badge-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #132740;
+            border: 1px solid #284c73;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin: 12px 0 16px;
+        }
+
+        .ocr-preview {
+            margin-top: 8px;
+            background: #07121f;
+            border: 1px solid #233e5c;
+            border-radius: 7px;
+            padding: 10px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            max-height: 120px;
+            overflow-y: auto;
+            color: #bad5f2;
+            white-space: pre-wrap;
+        }
+
         /* Responsive */
         @media(max-width: 1024px) {
             .app {
@@ -896,27 +987,78 @@
         </aside>
     </div>
 
-    <!-- FIR Narrative Ingestion Modal -->
+    <!-- FIR Narrative & Document Ingestion Modal -->
     <div id="modal" class="modal-backdrop hidden">
         <div class="modal">
             <button class="close" onclick="closeIngest()">×</button>
-            <div class="eyebrow">Natural Language Processing Engine</div>
-            <h2 style="margin: 6px 0 10px; color: #fff;">Extract Entities & Wire to Live Graph</h2>
-            <p class="muted" style="line-height: 1.5;">
-                Paste an investigation narrative or Police FIR. Indian vehicle registration plates, phones, bank accounts, suspect names, and financial transactions are automatically extracted and merged.
+            <div class="eyebrow">Natural Language Processing & Document OCR Engine</div>
+            <h2 style="margin: 6px 0 6px; color: #fff;">Extract Entities & Wire to Live Graph</h2>
+            <p class="muted" style="line-height: 1.45; font-size: 13px;">
+                Ingest Police FIR reports by typing raw text narrative or uploading digital/scanned copies (PDF, Photos). Entities, vehicles, accounts, and relationships are automatically extracted and merged into the live knowledge graph.
             </p>
 
-            <textarea id="firText" placeholder="Accused Rahul Sharma met Mr. Amit Verma at Sector 62 in FIR-777. Rahul drove vehicle UP14AB1234 and transferred ₹450000 to ACC987654321."></textarea>
-
-            <div style="font-size: 11px; color: var(--muted); margin-bottom: 6px;">Try a quick sample narrative:</div>
-            <div class="sample-chips">
-                <button type="button" class="sample-btn" onclick="useSample(1)">Sample: Hawala Money Drop</button>
-                <button type="button" class="sample-btn" onclick="useSample(2)">Sample: Arms & Vehicle Meeting</button>
+            <div class="modal-tabs">
+                <button id="tab-btn-text" type="button" class="modal-tab-btn active" onclick="switchIngestTab('text')">
+                    📝 Text Narrative
+                </button>
+                <button id="tab-btn-file" type="button" class="modal-tab-btn" onclick="switchIngestTab('file')">
+                    📄 Upload FIR Document (PDF / Photo)
+                </button>
             </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px;">
-                <button class="button primary" onclick="ingest()">Run NLP Extraction & Merge</button>
-                <span id="ingestStatus" class="muted" style="font-size: 12px;"></span>
+            <!-- Tab 1: Text Narrative -->
+            <div id="pane-text" class="ingest-tab-pane">
+                <textarea id="firText" placeholder="Accused Rahul Sharma met Mr. Amit Verma at Sector 62 in FIR-777. Rahul drove vehicle UP14AB1234 and transferred ₹450000 to ACC987654321."></textarea>
+
+                <div style="font-size: 11px; color: var(--muted); margin-bottom: 6px;">Try a quick sample narrative:</div>
+                <div class="sample-chips">
+                    <button type="button" class="sample-btn" onclick="useSample(1)">Sample: Hawala Money Drop</button>
+                    <button type="button" class="sample-btn" onclick="useSample(2)">Sample: Arms & Vehicle Meeting</button>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px;">
+                    <button class="button primary" onclick="ingest()">Run NLP Extraction & Merge</button>
+                    <span id="ingestStatus" class="muted" style="font-size: 12px;"></span>
+                </div>
+            </div>
+
+            <!-- Tab 2: Upload FIR Copy (PDF / Photo) -->
+            <div id="pane-file" class="ingest-tab-pane hidden">
+                <input type="file" id="firFileInput" accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.tiff" style="display: none;" onchange="handleFileSelected(this.files)">
+
+                <div id="dropzone" class="dropzone" onclick="document.getElementById('firFileInput').click()">
+                    <span class="dropzone-icon">📁</span>
+                    <div class="dropzone-title">Click to upload or drag & drop copy of FIR</div>
+                    <div class="dropzone-sub">Supports scanned photos (.png, .jpg, .jpeg, .webp) or official reports (.pdf)</div>
+                </div>
+
+                <div id="selectedFileCard" class="file-badge-card hidden">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">📄</span>
+                        <div>
+                            <div id="selectedFileName" style="font-weight: 600; color: #fff; font-size: 13px;"></div>
+                            <div id="selectedFileSize" style="font-size: 11px; color: var(--muted);"></div>
+                        </div>
+                    </div>
+                    <button type="button" class="button" style="padding: 4px 8px; font-size: 11px;" onclick="removeSelectedFile()">Remove</button>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 11px; font-weight: 600; color: var(--muted); display: block; margin-bottom: 4px;">
+                        Case Reference Code (Optional)
+                    </label>
+                    <input id="fileCaseId" class="search" style="width: 100%; max-width: 100%;" placeholder="e.g. FIR-2024-888">
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px;">
+                    <button id="btnSubmitFile" class="button primary" type="button" onclick="ingestFile()">Extract from Document & Merge</button>
+                    <span id="fileIngestStatus" class="muted" style="font-size: 12px;"></span>
+                </div>
+
+                <details id="ocrPreviewDetails" style="margin-top: 14px;" class="hidden">
+                    <summary style="cursor: pointer; font-size: 11.5px; color: var(--teal); font-weight: 600;">View OCR Extracted Text Preview</summary>
+                    <div id="ocrPreviewText" class="ocr-preview"></div>
+                </details>
             </div>
         </div>
     </div>
@@ -1504,6 +1646,122 @@
                 statusEl.textContent = 'Ingestion error: ' + err.message;
             }
         }
+
+        
+        let selectedFirFile = null;
+
+        function switchIngestTab(tab) {
+            document.querySelectorAll('.modal-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.ingest-tab-pane').forEach(p => p.classList.add('hidden'));
+
+            if (tab === 'text') {
+                document.getElementById('tab-btn-text').classList.add('active');
+                document.getElementById('pane-text').classList.remove('hidden');
+                document.getElementById('firText').focus();
+            } else {
+                document.getElementById('tab-btn-file').classList.add('active');
+                document.getElementById('pane-file').classList.remove('hidden');
+            }
+        }
+
+        function handleFileSelected(files) {
+            if (!files || !files.length) return;
+            selectedFirFile = files[0];
+            document.getElementById('dropzone').classList.add('hidden');
+            document.getElementById('selectedFileCard').classList.remove('hidden');
+            document.getElementById('selectedFileName').textContent = selectedFirFile.name;
+            document.getElementById('selectedFileSize').textContent = formatFileSize(selectedFirFile.size);
+            document.getElementById('fileIngestStatus').textContent = '';
+            document.getElementById('ocrPreviewDetails').classList.add('hidden');
+        }
+
+        function removeSelectedFile() {
+            selectedFirFile = null;
+            document.getElementById('firFileInput').value = '';
+            document.getElementById('dropzone').classList.remove('hidden');
+            document.getElementById('selectedFileCard').classList.add('hidden');
+            document.getElementById('fileIngestStatus').textContent = '';
+            document.getElementById('ocrPreviewDetails').classList.add('hidden');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        async function ingestFile() {
+            if (!selectedFirFile) {
+                alert('Please select or drop a PDF or photo of an FIR report first.');
+                return;
+            }
+
+            const statusEl = document.getElementById('fileIngestStatus');
+            const submitBtn = document.getElementById('btnSubmitFile');
+            submitBtn.disabled = true;
+            statusEl.innerHTML = `<span class="spinner" style="display:inline-block; vertical-align:middle; width:14px; height:14px; margin-right:6px;"></span> Parsing document & running OCR/NLP…`;
+
+            const formData = new FormData();
+            formData.append('file', selectedFirFile);
+            const caseId = document.getElementById('fileCaseId').value.trim();
+            if (caseId) {
+                formData.append('source_case_id', caseId);
+            }
+
+            try {
+                const res = await fetch(api + '/ingest/file?_t=' + Date.now(), {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    let msg = 'Extraction failed';
+                    try { msg = (await res.json()).detail || msg; } catch (_) {}
+                    throw new Error(msg);
+                }
+
+                const data = await res.json();
+                statusEl.innerHTML = `<b style="color:var(--teal)">✓ Extracted ${data.extracted_entities_count} entities & ${data.extracted_relations_count} links!</b>`;
+
+                if (data.extracted_text) {
+                    document.getElementById('ocrPreviewText').textContent = data.extracted_text;
+                    document.getElementById('ocrPreviewDetails').classList.remove('hidden');
+                }
+
+                await reloadGraph();
+            } catch (err) {
+                statusEl.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Setup Drag & Drop listeners on dropzone
+        window.addEventListener('DOMContentLoaded', () => {
+            const dropzone = document.getElementById('dropzone');
+            if (dropzone) {
+                ['dragenter', 'dragover'].forEach(name => {
+                    dropzone.addEventListener(name, e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.add('dragover');
+                    });
+                });
+                ['dragleave', 'drop'].forEach(name => {
+                    dropzone.addEventListener(name, e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.remove('dragover');
+                    });
+                });
+                dropzone.addEventListener('drop', e => {
+                    const dt = e.dataTransfer;
+                    if (dt && dt.files && dt.files.length) {
+                        handleFileSelected(dt.files);
+                    }
+                });
+            }
+        });
 
         window.addEventListener('resize', () => {
             if (network) {
