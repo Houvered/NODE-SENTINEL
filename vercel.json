@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "outputDirectory": "static",
+  "rewrites": [
+    {
+      "source": "/static/(.*)",
+      "destination": "/$1"
+    }
+  ]
+}

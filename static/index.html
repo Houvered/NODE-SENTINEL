@@ -890,6 +890,9 @@
                 <div id="datasetBadge" class="status-badge">
                     <i></i> <span id="datasetBadgeText">Syndicate Network (Active)</span>
                 </div>
+                <div id="apiBadge" class="status-badge" style="cursor: pointer; background: rgba(49, 209, 191, 0.1); border-color: rgba(49, 209, 191, 0.35); user-select: none;" onclick="promptApiUrl()" title="Click to set Backend API URL">
+                    <span style="color: var(--teal); font-size: 11px; font-weight: 600;">⚙ <span id="apiBadgeText">API: /api</span></span>
+                </div>
             </div>
         </header>
 
@@ -1069,7 +1072,44 @@
         let nodesDataSet = null;
         let edgesDataSet = null;
 
-        const api = '/api';
+        let api = localStorage.getItem('node_sentinel_api') || '/api';
+
+        function updateApiBadge() {
+            const badgeText = document.getElementById('apiBadgeText');
+            if (badgeText) {
+                if (api === '/api') {
+                    badgeText.textContent = 'API: /api';
+                } else {
+                    try {
+                        const u = new URL(api);
+                        badgeText.textContent = 'API: ' + u.host;
+                    } catch (_) {
+                        badgeText.textContent = 'API: ' + api;
+                    }
+                }
+            }
+        }
+
+        function promptApiUrl() {
+            const current = localStorage.getItem('node_sentinel_api') || '';
+            const val = prompt('Enter your live Backend API URL (e.g. https://your-tunnel.trycloudflare.com or leave blank to reset to default /api):', current);
+            if (val !== null) {
+                const cleaned = val.trim().replace(/\/+$/, '');
+                if (cleaned) {
+                    const finalApi = cleaned.endsWith('/api') ? cleaned : (cleaned + '/api');
+                    localStorage.setItem('node_sentinel_api', finalApi);
+                    api = finalApi;
+                } else {
+                    localStorage.removeItem('node_sentinel_api');
+                    api = '/api';
+                }
+                updateApiBadge();
+                const banner = document.getElementById('network-error-banner');
+                if (banner) banner.style.display = 'none';
+                reloadGraph();
+            }
+        }
+
         const groupColors = {
             Person: '#4da8ff',
             Location: '#2dd4bf',
@@ -1092,13 +1132,24 @@
         async function request(path, options = {}) {
             const sep = path.includes('?') ? '&' : '?';
             const url = api + path + sep + '_t=' + Date.now();
-            const r = await fetch(url, options);
+            let r;
+            try {
+                r = await fetch(url, options);
+            } catch (err) {
+                showError('Cannot connect to backend (' + api + '). If hosted on Vercel, click "⚙ API" in topbar to enter your live backend URL.');
+                throw err;
+            }
             if (!r.ok) {
-                let msg = 'Request failed';
+                let msg = 'Request failed (' + r.status + ')';
                 try {
                     const err = await r.json();
                     msg = err.detail || msg;
                 } catch (_) {}
+                if (r.status === 404 && api === '/api') {
+                    showError('Backend API returned 404. If this frontend is deployed on Vercel, click "⚙ API" in topbar to set your live backend URL.');
+                } else {
+                    showError(msg);
+                }
                 throw new Error(msg);
             }
             return r.json();
@@ -1771,6 +1822,7 @@
         });
 
         // Initialize on load
+        updateApiBadge();
         reloadGraph();
     </script>
 </body>
