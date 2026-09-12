@@ -4,8 +4,12 @@
   "outputDirectory": "static",
   "rewrites": [
     {
-      "source": "/static/(.*)",
-      "destination": "/$1"
+      "source": "/api/:path*",
+      "destination": "https://node-sentinel-api.onrender.com/api/:path*"
+    },
+    {
+      "source": "/static/:path*",
+      "destination": "/:path*"
     }
   ]
 }
