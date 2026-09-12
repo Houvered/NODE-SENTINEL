@@ -16,12 +16,34 @@ from app.api.routes_ingest import ingest_sample_batch_data
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+from app.api.routes_ingest import load_dataset_by_name
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(fastapi_app: FastAPI):
+    """Auto-load synthetic dataset on server startup if graph engine is empty."""
+    graph = get_graph_engine()
+    nodes = graph.get_all_nodes()
+    if len(nodes) == 0:
+        logger.info("Graph is empty on startup. Auto-ingesting synthetic sample dataset...")
+        try:
+            res = load_dataset_by_name(graph, "syndicate_network.json")
+            logger.info(f"Auto-ingested sample data: {res['total_graph_nodes']} nodes, {res['total_graph_edges']} edges created.")
+        except Exception as e:
+            logger.error(f"Failed to auto-ingest sample dataset: {e}")
+    else:
+        logger.info(f"Graph loaded with {len(nodes)} pre-existing nodes.")
+    yield
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="AI-Assisted Criminal Network Analysis & Knowledge Graph System Engine",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # CORS Setup
@@ -43,21 +65,6 @@ app.include_router(alerts_router, prefix=settings.API_V1_STR)
 static_path = os.path.join(settings.BASE_DIR, "static")
 if os.path.exists(static_path):
     app.mount("/static", StaticFiles(directory=static_path), name="static")
-
-@app.on_event("startup")
-def on_startup_auto_ingest():
-    """Auto-load synthetic dataset on server startup if graph engine is empty."""
-    graph = get_graph_engine()
-    nodes = graph.get_all_nodes()
-    if len(nodes) == 0:
-        logger.info("Graph is empty on startup. Auto-ingesting synthetic sample dataset...")
-        try:
-            res = ingest_sample_batch_data(graph)
-            logger.info(f"Auto-ingested sample data: {res['total_graph_nodes']} nodes, {res['total_graph_edges']} edges created.")
-        except Exception as e:
-            logger.error(f"Failed to auto-ingest sample dataset: {e}")
-    else:
-        logger.info(f"Graph loaded with {len(nodes)} pre-existing nodes.")
 
 @app.get("/", include_in_schema=False)
 def serve_dashboard():

@@ -28,8 +28,6 @@ class NLPExtractor:
     MONEY_REGEX = r'(?:₹|INR|rs\.?|rupees)\s?([\d,]+)'
     PERSON_TITLE_REGEX = r'\b(?:Mr\.|Mrs\.|Ms\.|Shri|Accused|Suspect|Officer)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b'
     CASE_ID_REGEX = r'\b(?:FIR|CASE|CRIM)-?\d{3,6}\b'
-    # Supports both Unicode rupee symbol and common textual forms.
-    MONEY_REGEX = r'(?:₹|INR|rs\.?|rupees)\s?([\d,]+)'
 
     def __init__(self):
         self.vehicle_pattern = re.compile(self.VEHICLE_REGEX)
@@ -185,9 +183,17 @@ class NLPExtractor:
             money_match = self.money_pattern.search(sent_str)
             if money_match:
                 amount_val = money_match.group(1).replace(",", "")
-                # Find sender and receiver in sentence
+                # Find sender (Person) and receiver (Account or Person) in sentence
                 p_in_sent = [p for p in person_nodes if p["name"].lower() in sent_str.lower()]
-                if len(p_in_sent) >= 2:
+                acc_in_sent = [a for a in account_nodes if a["name"].lower() in sent_str.lower()]
+                if p_in_sent and acc_in_sent:
+                    relationships.append({
+                        "source": p_in_sent[0]["id"],
+                        "target": acc_in_sent[0]["id"],
+                        "relationship": EdgeType.TRANSFERRED_MONEY.value,
+                        "properties": {"amount": float(amount_val), "evidence": sent_str}
+                    })
+                elif len(p_in_sent) >= 2:
                     sender = p_in_sent[0]
                     receiver = p_in_sent[1]
                     relationships.append({

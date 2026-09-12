@@ -1,3 +1,1520 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Node Sentinel · Network Intelligence</title><script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script><style>:root{--bg:#07101d;--surface:#101c2d;--surface2:#15263d;--line:#263b55;--text:#edf4fd;--muted:#91a4ba;--teal:#31d1bf;--amber:#ffb547;--red:#ff6577;--blue:#5ca9ff}*{box-sizing:border-box}body{margin:0;color:var(--text);background:var(--bg);font:14px Inter,ui-sans-serif,system-ui,sans-serif;overflow:hidden}.app{height:100vh;display:grid;grid-template-columns:242px minmax(450px,1fr) 350px;grid-template-rows:74px 1fr}.topbar{grid-column:1/-1;display:flex;align-items:center;gap:22px;padding:0 28px;border-bottom:1px solid var(--line);background:#101c2d}.brand{font-weight:800;font-size:18px;letter-spacing:1px}.brand i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--teal);box-shadow:0 0 18px var(--teal);margin-right:10px}.tag{font-size:11px;color:var(--teal);border:1px solid #258d85;border-radius:20px;padding:5px 9px}.status{margin-left:auto;color:#9fe4c7;font-size:12px}.sidebar{padding:20px 14px;background:#0b1626;border-right:1px solid var(--line)}.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:5px 12px 10px}.nav{width:100%;border:0;background:transparent;color:#b9c9dc;text-align:left;border-radius:8px;padding:11px 12px;margin:3px 0;cursor:pointer;font-weight:600}.nav:hover,.nav.active{background:#17324a;color:#fff}.nav span{display:inline-block;width:25px;color:var(--teal)}.data-note{position:absolute;bottom:18px;color:var(--muted);font-size:11px;padding:12px}.workspace{position:relative;min-width:0}.toolbar{height:62px;display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:#0c1727}.search{width:min(360px,55%);color:var(--text);background:#15253a;border:1px solid #29425d;border-radius:7px;padding:10px 12px;outline:0}.button{padding:9px 12px;border:1px solid #355575;background:#193653;color:#eaf7ff;border-radius:7px;font-weight:650;cursor:pointer}.button.primary{background:var(--teal);border-color:var(--teal);color:#05201e}.button:hover{filter:brightness(1.12)}#network{height:calc(100vh - 136px);background:radial-gradient(ellipse at center,#112944 0%,#07101d 72%)}.legend{position:absolute;left:18px;bottom:18px;display:flex;gap:10px;flex-wrap:wrap;background:#081220d9;padding:9px;border:1px solid var(--line);border-radius:8px}.legend b{font-size:10px;font-weight:700}.dot{width:8px;height:8px;display:inline-block;border-radius:50%;margin-right:4px}.rightbar{border-left:1px solid var(--line);background:#0b1626;overflow:auto}.panel{padding:19px;border-bottom:1px solid var(--line)}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:var(--teal);font-weight:bold}.entity-title{font-size:22px;margin:7px 0 3px}.muted{color:var(--muted)}.risk{display:flex;align-items:center;gap:16px;margin:16px 0;padding:14px;background:#13243a;border-radius:9px}.score{font-size:28px;font-weight:800;color:var(--amber)}.risklabel{font-size:11px;letter-spacing:.7px}.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{padding:9px 6px;background:#13243a;border-radius:7px;text-align:center}.metric b{font-size:15px;display:block}.metric small{color:var(--muted);font-size:9px}.list{padding:0;margin:12px 0 0;list-style:none}.list li{padding:9px 0;border-bottom:1px solid #20354e}.pill{font-size:10px;border-radius:12px;padding:3px 6px;background:#213c58;color:#bde2ff}.hidden{display:none!important}.full-panel{position:absolute;z-index:3;top:62px;right:0;left:0;bottom:0;background:#0b1626;overflow:auto;padding:30px}.table{width:100%;border-collapse:collapse;margin-top:20px}.table th,.table td{padding:12px;text-align:left;border-bottom:1px solid var(--line)}.table th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px}.alert{border-left:3px solid var(--amber);padding:13px;margin:10px 0;background:#13243a;border-radius:0 7px 7px 0}.critical{border-color:var(--red)}.modal-backdrop{position:fixed;z-index:10;inset:0;background:#0009;display:grid;place-items:center}.modal{width:min(620px,92vw);background:#102037;border:1px solid #315274;border-radius:12px;padding:23px}.modal textarea{width:100%;height:170px;margin:14px 0;background:#091524;color:#eaf2ff;border:1px solid #2c4a68;border-radius:7px;padding:11px;font:inherit}.close{float:right;background:none;border:0;color:white;font-size:20px;cursor:pointer}@media(max-width:960px){.app{grid-template-columns:60px 1fr;grid-template-rows:74px 1fr}.rightbar{display:none}.sidebar{padding:20px 8px}.nav{font-size:0}.nav span{font-size:15px}.nav-label,.data-note{display:none}}</style></head><body><div class="app"><header class="topbar"><div class="brand"><i></i>NODE SENTINEL</div><div class="tag">NETWORK INTELLIGENCE</div><div class="status">● LIVE IN-MEMORY GRAPH</div></header><aside class="sidebar"><div class="nav-label">Workspace</div><button class="nav active" onclick="showGraph()"><span>◉</span>Network graph</button><button class="nav" onclick="showAnalytics()"><span>◫</span>Centrality</button><button class="nav" onclick="showAlerts()"><span>⚠</span>Alert feed</button><div class="nav-label" style="margin-top:22px">Actions</div><button class="nav" onclick="openIngest()"><span>＋</span>Ingest FIR text</button><button class="nav" onclick="reloadGraph()"><span>↻</span>Refresh data</button><div class="data-note">Demo dataset loaded automatically.<br>Click a node to investigate.</div></aside><main class="workspace"><div class="toolbar"><input id="search" class="search" placeholder="Search person, phone, vehicle, case…" onkeydown="if(event.key==='Enter')searchGraph()"><button class="button" onclick="searchGraph()">Search</button><button class="button primary" onclick="openIngest()">+ Ingest report</button></div><div id="network"></div><div class="legend"><b><i class="dot" style="background:#5ca9ff"></i>Person</b><b><i class="dot" style="background:#31d1bf"></i>Location</b><b><i class="dot" style="background:#ffb547"></i>Account</b><b><i class="dot" style="background:#c387ff"></i>Case</b></div><section id="overlay" class="full-panel hidden"></section></main><aside class="rightbar"><section class="panel"><div class="eyebrow">Entity intelligence</div><div id="dossier"><h2 class="entity-title">Select a node</h2><p class="muted">Choose a node in the network to view its risk factors, relationships, and graph metrics.</p></div></section><section class="panel"><div class="eyebrow">Network summary</div><div id="summary" class="metric-grid" style="margin-top:12px"></div></section></aside></div><div id="modal" class="modal-backdrop hidden"><div class="modal"><button class="close" onclick="closeIngest()">×</button><div class="eyebrow">FIR ingestion</div><h2>Extract entities & merge into graph</h2><p class="muted">Paste an investigation narrative. Identified people, locations, vehicles and case links are added to the live graph.</p><textarea id="firText" placeholder="Accused Rahul Sharma met Mr. Amit Verma at Sector 62 in FIR-777. Rahul drove UP14AB1234."></textarea><button class="button primary" onclick="ingest()">Run extraction & merge</button><span id="ingestStatus" class="muted" style="margin-left:10px"></span></div></div><script>
-let network,nodes,edges;const api='/api',groupColors={Person:'#5ca9ff',Location:'#31d1bf',Vehicle:'#f59e8b',Phone:'#7b9bff',BankAccount:'#ffb547',Case:'#c387ff',Organization:'#ff7cc7'};async function request(path,options){const r=await fetch(api+path,options);if(!r.ok)throw new Error((await r.json()).detail||'Request failed');return r.json()}function nav(index){document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav')[index]?.classList.add('active')}async function reloadGraph(){showGraph();const data=await request('/network/graph');renderGraph(data);document.getElementById('summary').innerHTML=`<div class="metric"><b>${data.stats.nodes}</b><small>ENTITIES</small></div><div class="metric"><b>${data.stats.edges}</b><small>LINKS</small></div><div class="metric"><b>LIVE</b><small>STATUS</small></div>`}function renderGraph(data){nodes=new vis.DataSet(data.nodes.map(n=>({...n,color:{background:groupColors[n.group]||'#9baec4',border:'#e5f1ff',highlight:{background:'#fff',border:'#31d1bf'}},font:{color:'#eaf4ff',size:13},size:n.group==='Person'?21:16})));edges=new vis.DataSet(data.edges.map(e=>({...e,color:{color:'#527390',highlight:'#31d1bf'},font:{color:'#9db3ca',size:9,strokeWidth:0},smooth:{type:'dynamic'}})));network=new vis.Network(document.getElementById('network'),{nodes,edges},{physics:{stabilization:{iterations:120},barnesHut:{gravitationalConstant:-4500,springLength:145}},interaction:{hover:true,navigationButtons:true},nodes:{shape:'dot',borderWidth:1.5},edges:{arrows:'to'}});network.on('selectNode',p=>loadDossier(p.nodes[0]));network.on('deselectNode',()=>document.getElementById('dossier').innerHTML='<h2 class="entity-title">Select a node</h2><p class="muted">Choose a node in the network to view its risk factors, relationships, and graph metrics.</p>')}async function loadDossier(id){const d=await request('/entity/'+encodeURIComponent(id)+'/dossier'),f=d.risk.factors.length?d.risk.factors.map(f=>`<li>${f.factor}<b style="float:right;color:var(--amber)">+${f.points}</b></li>`).join(''):'<li class="muted">No active risk factors.</li>';document.getElementById('dossier').innerHTML=`<div class="eyebrow">${d.type}</div><h2 class="entity-title">${d.name}</h2><div class="risk"><div class="score">${d.risk.overall_score}</div><div><b>${d.risk.severity_level} RISK</b><div class="muted risklabel">INVESTIGATIVE SCORE / 100</div></div></div><div class="metric-grid"><div class="metric"><b>${d.centrality.degree}</b><small>DEGREE</small></div><div class="metric"><b>${d.centrality.betweenness}</b><small>BROKER</small></div><div class="metric"><b>${d.centrality.pagerank}</b><small>PAGERANK</small></div></div><div class="eyebrow" style="margin-top:18px">Risk evidence</div><ul class="list">${f}</ul><div class="eyebrow" style="margin-top:18px">Connected entities · ${d.connected_nodes.length}</div><ul class="list">${d.connected_nodes.slice(0,6).map(n=>`<li>${n.name} <span class="pill">${n.label}</span></li>`).join('')}</ul>`}async function searchGraph(){const q=document.getElementById('search').value.trim();if(!q)return reloadGraph();const data=await request('/network/search?query='+encodeURIComponent(q)+'&depth=1');renderGraph(data);if(!data.nodes.length)alert('No matching entities found.')}function showGraph(){document.getElementById('overlay').classList.add('hidden');nav(0)}async function showAlerts(){nav(2);const d=await request('/network/alerts');document.getElementById('overlay').innerHTML=`<div class="eyebrow">Real-time anomaly monitoring</div><h1>Active alerts <span class="muted">(${d.count})</span></h1>${d.alerts.length?d.alerts.map(a=>`<article class="alert ${a.severity==='CRITICAL'?'critical':''}"><b>${a.severity} · ${a.title}</b><p class="muted">${a.description}</p><span class="pill">${a.alert_type}</span></article>`).join(''):'<p class="muted">No anomalies currently detected.</p>'}`;document.getElementById('overlay').classList.remove('hidden')}async function showAnalytics(){nav(1);const d=await request('/network/analytics/centrality');document.getElementById('overlay').innerHTML=`<div class="eyebrow">Graph analytics</div><h1>Centrality ranking</h1><table class="table"><thead><tr><th>Entity</th><th>Type</th><th>Degree</th><th>Broker score</th><th>PageRank</th><th>Risk</th></tr></thead><tbody>${d.items.map(i=>`<tr><td><b>${i.name}</b></td><td>${i.node_type}</td><td>${i.degree_centrality}</td><td>${i.betweenness_centrality}</td><td>${i.pagerank}</td><td style="color:var(--amber)">${i.risk_score}</td></tr>`).join('')}</tbody></table>`;document.getElementById('overlay').classList.remove('hidden')}function openIngest(){document.getElementById('modal').classList.remove('hidden');document.getElementById('firText').focus()}function closeIngest(){document.getElementById('modal').classList.add('hidden')}async function ingest(){const text=document.getElementById('firText').value.trim();if(!text)return;const el=document.getElementById('ingestStatus');el.textContent='Processing…';try{const d=await request('/ingest/text',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text})});el.textContent=`Added ${d.extracted_entities_count} entities and ${d.extracted_relations_count} links.`;await reloadGraph();setTimeout(closeIngest,900)}catch(e){el.textContent=e.message}}reloadGraph();
-</script></body></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Node Sentinel · AI Criminal Network Intelligence</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Local Vis.js Network (with CDN fallback) -->
+    <script src="/static/js/vis-network.min.js"></script>
+    <script>
+        if (typeof vis === 'undefined') {
+            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        :root {
+            --bg: #07101d;
+            --surface: #101c2d;
+            --surface2: #15263d;
+            --surface-hover: #1c3350;
+            --line: #263b55;
+            --text: #edf4fd;
+            --text-secondary: #c5d7ed;
+            --muted: #8ca3bf;
+            --teal: #31d1bf;
+            --teal-glow: rgba(49, 209, 191, 0.25);
+            --amber: #ffb547;
+            --red: #ff4d61;
+            --blue: #4da8ff;
+            --purple: #c084fc;
+            --pink: #f472b6;
+            --coral: #fb923c;
+            --indigo: #818cf8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            color: var(--text);
+            background: var(--bg);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* App Grid Layout */
+        .app {
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 240px minmax(460px, 1fr) 370px;
+            grid-template-rows: 68px 1fr;
+        }
+
+        /* Topbar */
+        .topbar {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--line);
+            background: var(--surface);
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: 1.2px;
+            color: #fff;
+        }
+
+        .brand-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--teal);
+            box-shadow: 0 0 16px var(--teal);
+            margin-right: 12px;
+            display: inline-block;
+            animation: pulse-glow 2.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 8px var(--teal); }
+            to { box-shadow: 0 0 20px var(--teal), 0 0 35px var(--teal); }
+        }
+
+        .tag {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            color: var(--teal);
+            background: rgba(49, 209, 191, 0.1);
+            border: 1px solid rgba(49, 209, 191, 0.3);
+            border-radius: 20px;
+            padding: 4px 10px;
+        }
+
+        .topbar-stats {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #8be4bc;
+            font-weight: 600;
+            font-size: 12px;
+            background: rgba(49, 209, 191, 0.08);
+            border: 1px solid rgba(49, 209, 191, 0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .status-badge i {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #34d399;
+            display: inline-block;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            padding: 20px 14px;
+            background: #091424;
+            border-right: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+            z-index: 5;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            padding: 10px 12px 6px;
+        }
+
+        .nav {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #b3c5dc;
+            text-align: left;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.15s ease;
+        }
+
+        .nav:hover {
+            background: var(--surface2);
+            color: #fff;
+        }
+
+        .nav.active {
+            background: #17324f;
+            color: #fff;
+            border-left: 3px solid var(--teal);
+        }
+
+        .nav span.icon {
+            font-size: 14px;
+            width: 20px;
+            color: var(--teal);
+            display: inline-flex;
+            justify-content: center;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 14px 10px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        /* Center Workspace Area */
+        .workspace {
+            position: relative;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 68px);
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        /* Workspace Toolbar */
+        .toolbar {
+            height: 56px;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 18px;
+            border-bottom: 1px solid var(--line);
+            background: #0d1a2d;
+            z-index: 5;
+        }
+
+        .dataset-select {
+            padding: 8px 12px;
+            border: 1px solid #355575;
+            background: #15253a;
+            color: #eaf7ff;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .dataset-select:focus {
+            border-color: var(--teal);
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 380px;
+        }
+
+        .search {
+            width: 100%;
+            color: var(--text);
+            background: #142438;
+            border: 1px solid #29425d;
+            border-radius: 7px;
+            padding: 8px 32px 8px 12px;
+            outline: none;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+
+        .search:focus {
+            border-color: var(--teal);
+            background: #172a42;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+        }
+
+        .button {
+            padding: 8px 14px;
+            border: 1px solid #355575;
+            background: #193653;
+            color: #eaf7ff;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .button:hover {
+            filter: brightness(1.15);
+            border-color: #4a749d;
+        }
+
+        .button.primary {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: #04211e;
+            font-weight: 700;
+        }
+
+        .button.primary:hover {
+            background: #47e2d1;
+            box-shadow: 0 0 12px var(--teal-glow);
+        }
+
+        /* Direct Full-Height Network Canvas */
+        #network {
+            flex: 1;
+            width: 100%;
+            height: calc(100vh - 124px);
+            min-height: 400px;
+            background: radial-gradient(ellipse at center, #102640 0%, #060e1a 75%);
+            display: block;
+        }
+
+        #network-error-banner {
+            position: absolute;
+            top: 66px;
+            left: 20px;
+            right: 20px;
+            background: rgba(239, 68, 68, 0.9);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 20;
+            display: none;
+        }
+
+        /* Canvas Floating Legend */
+        .legend {
+            position: absolute;
+            left: 18px;
+            bottom: 18px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: rgba(9, 20, 36, 0.92);
+            backdrop-filter: blur(10px);
+            padding: 10px 14px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            z-index: 3;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #d1e2f6;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            display: inline-block;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        /* Full Overlay Views (Centrality, Alerts, Communities) */
+        .full-panel {
+            position: absolute;
+            z-index: 6;
+            top: 56px;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            background: #091424;
+            overflow-y: auto;
+            padding: 28px 36px;
+        }
+
+        .full-panel h1 {
+            font-size: 22px;
+            margin: 6px 0 18px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Tables */
+        .table-wrap {
+            overflow-x: auto;
+            background: #0d1c30;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            margin-top: 16px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .table th {
+            color: var(--muted);
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 700;
+            background: #11243c;
+        }
+
+        .table tbody tr {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .table tbody tr:hover {
+            background: #162f4e;
+        }
+
+        /* Alert Cards */
+        .alert-card {
+            border-left: 4px solid var(--amber);
+            padding: 16px 18px;
+            margin: 12px 0;
+            background: #0f2036;
+            border-radius: 0 8px 8px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            border-right: 1px solid rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.2s;
+        }
+
+        .alert-card:hover {
+            background: #132742;
+            transform: translateX(3px);
+        }
+
+        .alert-card.critical {
+            border-left-color: var(--red);
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .alert-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .alert-desc {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.45;
+            margin-bottom: 10px;
+        }
+
+        .alert-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .clickable-chip {
+            cursor: pointer;
+            transition: filter 0.15s;
+        }
+
+        .clickable-chip:hover {
+            filter: brightness(1.3);
+            text-decoration: underline;
+        }
+
+        /* Rightbar Dossier Area */
+        .rightbar {
+            border-left: 1px solid var(--line);
+            background: #0a1628;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
+        }
+
+        .panel {
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .eyebrow {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            color: var(--teal);
+            font-weight: 700;
+        }
+
+        .entity-title {
+            font-size: 21px;
+            font-weight: 800;
+            margin: 6px 0 4px;
+            color: #fff;
+            word-break: break-word;
+        }
+
+        .entity-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .risk-gauge {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 14px 0;
+            padding: 14px 16px;
+            background: #102238;
+            border-radius: 9px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .risk-score {
+            font-size: 28px;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .risk-score.critical { color: var(--red); }
+        .risk-score.high { color: var(--amber); }
+        .risk-score.medium { color: #facc15; }
+        .risk-score.low { color: #34d399; }
+
+        .severity-badge {
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.8px;
+        }
+
+        .severity-badge.critical { color: var(--red); }
+        .severity-badge.high { color: var(--amber); }
+        .severity-badge.medium { color: #facc15; }
+        .severity-badge.low { color: #34d399; }
+
+        .props-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+            margin: 12px 0 16px;
+        }
+
+        .prop-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 6px 8px;
+            background: #0e1c2e;
+            border-radius: 5px;
+        }
+
+        .prop-item span.k {
+            color: var(--muted);
+            text-transform: capitalize;
+        }
+
+        .prop-item span.v {
+            color: #fff;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .metric {
+            padding: 10px 6px;
+            background: #112236;
+            border-radius: 7px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .metric b {
+            font-size: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            display: block;
+            color: #fff;
+        }
+
+        .metric small {
+            color: var(--muted);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.7px;
+            margin-top: 3px;
+            display: block;
+        }
+
+        .list {
+            padding: 0;
+            margin: 10px 0 0;
+            list-style: none;
+        }
+
+        .list li {
+            padding: 9px 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12.5px;
+            line-height: 1.4;
+        }
+
+        .connected-entity-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: #0e1c2e;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .connected-entity-item:hover {
+            background: #172f4d;
+        }
+
+        .connected-name {
+            font-weight: 600;
+            color: #e5f0fc;
+            font-size: 12.5px;
+        }
+
+        .pill {
+            font-size: 10.5px;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 3px 8px;
+            background: #1a334d;
+            color: #bde2ff;
+        }
+
+        .pill.badge-red { background: rgba(255, 77, 97, 0.2); color: #ff8e9b; }
+        .pill.badge-amber { background: rgba(255, 181, 71, 0.2); color: #ffd187; }
+        .pill.badge-teal { background: rgba(49, 209, 191, 0.2); color: #84f2e6; }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            z-index: 100;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            display: grid;
+            place-items: center;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            width: min(650px, 92vw);
+            background: #0f1f33;
+            border: 1px solid #315274;
+            border-radius: 12px;
+            padding: 26px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal textarea {
+            width: 100%;
+            height: 150px;
+            margin: 14px 0 10px;
+            background: #08121f;
+            color: #eaf2ff;
+            border: 1px solid #2c4a68;
+            border-radius: 8px;
+            padding: 12px;
+            font: inherit;
+            resize: vertical;
+            outline: none;
+        }
+
+        .modal textarea:focus {
+            border-color: var(--teal);
+        }
+
+        .sample-chips {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .sample-btn {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: #162b45;
+            border: 1px solid #2c4a68;
+            color: #bad3ed;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .sample-btn:hover {
+            background: #1f3b5e;
+            color: #fff;
+        }
+
+        .close {
+            float: right;
+            background: none;
+            border: 0;
+            color: var(--muted);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        /* Responsive */
+        @media(max-width: 1024px) {
+            .app {
+                grid-template-columns: 64px 1fr 320px;
+            }
+            .nav {
+                font-size: 0;
+                justify-content: center;
+                padding: 12px;
+            }
+            .nav span.icon {
+                font-size: 18px;
+                width: auto;
+            }
+            .nav-label,
+            .sidebar-footer {
+                display: none;
+            }
+        }
+
+        @media(max-width: 820px) {
+            .app {
+                grid-template-columns: 60px 1fr;
+            }
+            .rightbar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-dot"></span>
+                NODE SENTINEL
+            </div>
+            <div class="tag">AI CRIMINAL NETWORK ENGINE</div>
+            <div class="topbar-stats">
+                <div id="datasetBadge" class="status-badge">
+                    <i></i> <span id="datasetBadgeText">Syndicate Network (Active)</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="nav-label">Workspace</div>
+            <button id="nav-graph" class="nav active" onclick="showGraph()">
+                <span class="icon">◉</span> Network Graph
+            </button>
+            <button id="nav-centrality" class="nav" onclick="showAnalytics()">
+                <span class="icon">◫</span> Centrality & Brokers
+            </button>
+            <button id="nav-communities" class="nav" onclick="showCommunities()">
+                <span class="icon">❖</span> Louvain Clusters
+            </button>
+            <button id="nav-alerts" class="nav" onclick="showAlerts()">
+                <span class="icon">⚠</span> Anomaly Alerts
+            </button>
+
+            <div class="nav-label" style="margin-top: 18px">Investigation Actions</div>
+            <button class="nav" onclick="openIngest()">
+                <span class="icon">＋</span> Ingest FIR Report
+            </button>
+            <button class="nav" onclick="reloadGraph()">
+                <span class="icon">↻</span> Refresh Graph
+            </button>
+            <button class="nav" onclick="resetDemo()">
+                <span class="icon">↺</span> Reset Demo
+            </button>
+
+            <div class="sidebar-footer">
+                Autonomous Intelligence Engine.<br>
+                Click any node to open its full dossier.
+            </div>
+        </aside>
+
+        <!-- Center Interactive Workspace -->
+        <main class="workspace">
+            <div class="toolbar">
+                <select id="datasetSelect" class="dataset-select" onchange="changeDataset(this.value)">
+                    <option value="syndicate_network">Syndicate Network (28 entities · In-Depth)</option>
+                    <option value="demo_graph">Demo Graph (8 entities · Basic)</option>
+                </select>
+
+                <div class="search-container">
+                    <input id="search" class="search" placeholder="Search suspect, vehicle, phone, account, case…"
+                        onkeydown="if(event.key==='Enter')searchGraph()" oninput="toggleSearchClear()">
+                    <button id="searchClearBtn" class="search-clear" onclick="clearSearch()">✕</button>
+                </div>
+
+                <button class="button" onclick="searchGraph()">Search</button>
+                <button class="button primary" onclick="openIngest()">+ Ingest FIR</button>
+            </div>
+
+            <div id="network-error-banner"></div>
+
+            <!-- Vis.js Network Canvas -->
+            <div id="network"></div>
+
+            <!-- Complete Entity Type Legend -->
+            <div class="legend">
+                <div class="legend-item"><i class="dot" style="background: var(--blue)"></i>Person</div>
+                <div class="legend-item"><i class="dot" style="background: var(--teal)"></i>Location</div>
+                <div class="legend-item"><i class="dot" style="background: var(--amber)"></i>Bank Account</div>
+                <div class="legend-item"><i class="dot" style="background: var(--purple)"></i>Case</div>
+                <div class="legend-item"><i class="dot" style="background: var(--coral)"></i>Vehicle</div>
+                <div class="legend-item"><i class="dot" style="background: var(--indigo)"></i>Phone</div>
+                <div class="legend-item"><i class="dot" style="background: var(--pink)"></i>Organization</div>
+            </div>
+
+            <!-- Overlay for Analytics, Communities, Alerts -->
+            <section id="overlay" class="full-panel hidden"></section>
+        </main>
+
+        <!-- Rightbar: Suspect Intelligence Dossier -->
+        <aside class="rightbar">
+            <section class="panel">
+                <div class="eyebrow">Entity Intelligence Dossier</div>
+                <div id="dossier">
+                    <h2 class="entity-title" style="color: var(--muted); margin-top: 12px;">Select an entity</h2>
+                    <p class="muted" style="line-height: 1.5; margin-top: 8px;">
+                        Click on any node in the network to view its risk score breakdown, betweenness broker metrics, connected targets, and active anomaly alerts.
+                    </p>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="eyebrow">Network Overview</div>
+                <div id="summary" class="metric-grid" style="margin-top: 14px;">
+                    <div class="metric"><b>--</b><small>ENTITIES</small></div>
+                    <div class="metric"><b>--</b><small>LINKS</small></div>
+                    <div class="metric"><b style="color: var(--teal)">READY</b><small>STATUS</small></div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <!-- FIR Narrative Ingestion Modal -->
+    <div id="modal" class="modal-backdrop hidden">
+        <div class="modal">
+            <button class="close" onclick="closeIngest()">×</button>
+            <div class="eyebrow">Natural Language Processing Engine</div>
+            <h2 style="margin: 6px 0 10px; color: #fff;">Extract Entities & Wire to Live Graph</h2>
+            <p class="muted" style="line-height: 1.5;">
+                Paste an investigation narrative or Police FIR. Indian vehicle registration plates, phones, bank accounts, suspect names, and financial transactions are automatically extracted and merged.
+            </p>
+
+            <textarea id="firText" placeholder="Accused Rahul Sharma met Mr. Amit Verma at Sector 62 in FIR-777. Rahul drove vehicle UP14AB1234 and transferred ₹450000 to ACC987654321."></textarea>
+
+            <div style="font-size: 11px; color: var(--muted); margin-bottom: 6px;">Try a quick sample narrative:</div>
+            <div class="sample-chips">
+                <button type="button" class="sample-btn" onclick="useSample(1)">Sample: Hawala Money Drop</button>
+                <button type="button" class="sample-btn" onclick="useSample(2)">Sample: Arms & Vehicle Meeting</button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px;">
+                <button class="button primary" onclick="ingest()">Run NLP Extraction & Merge</button>
+                <span id="ingestStatus" class="muted" style="font-size: 12px;"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        let network = null;
+        let nodesDataSet = null;
+        let edgesDataSet = null;
+
+        const api = '/api';
+        const groupColors = {
+            Person: '#4da8ff',
+            Location: '#2dd4bf',
+            Vehicle: '#fb923c',
+            Phone: '#818cf8',
+            BankAccount: '#fbbf24',
+            Case: '#c084fc',
+            Organization: '#f472b6'
+        };
+
+        function showError(msg) {
+            const banner = document.getElementById('network-error-banner');
+            if (banner) {
+                banner.textContent = msg;
+                banner.style.display = 'block';
+            }
+            console.error('[Node Sentinel Error]', msg);
+        }
+
+        async function request(path, options = {}) {
+            const sep = path.includes('?') ? '&' : '?';
+            const url = api + path + sep + '_t=' + Date.now();
+            const r = await fetch(url, options);
+            if (!r.ok) {
+                let msg = 'Request failed';
+                try {
+                    const err = await r.json();
+                    msg = err.detail || msg;
+                } catch (_) {}
+                throw new Error(msg);
+            }
+            return r.json();
+        }
+
+        function setNavActive(id) {
+            ['nav-graph', 'nav-centrality', 'nav-communities', 'nav-alerts'].forEach(nid => {
+                const el = document.getElementById(nid);
+                if (el) el.classList.remove('active');
+            });
+            const active = document.getElementById(id);
+            if (active) active.classList.add('active');
+        }
+
+        function showGraph() {
+            document.getElementById('overlay').classList.add('hidden');
+            setNavActive('nav-graph');
+            if (network) {
+                network.redraw();
+            }
+        }
+
+        async function reloadGraph() {
+            showGraph();
+            try {
+                const data = await request('/network/graph');
+                renderGraph(data);
+                updateSummaryStats(data.stats.nodes, data.stats.edges);
+            } catch (err) {
+                showError('Failed to load graph: ' + err.message);
+            }
+        }
+
+        function updateSummaryStats(nodesCount, edgesCount) {
+            document.getElementById('summary').innerHTML = `
+                <div class="metric"><b>${nodesCount}</b><small>ENTITIES</small></div>
+                <div class="metric"><b>${edgesCount}</b><small>LINKS</small></div>
+                <div class="metric"><b style="color:var(--teal)">LIVE</b><small>NETWORKX</small></div>
+            `;
+        }
+
+        function renderGraph(data) {
+            if (typeof vis === 'undefined' || !vis.DataSet || !vis.Network) {
+                showError('Vis.js library is not available. Please refresh or check browser network permissions.');
+                return;
+            }
+
+            if (!data.nodes || !data.nodes.length) {
+                showError('Network dataset is empty. Click "Reset Demo" to re-load graph.');
+                return;
+            }
+
+            // Transform Nodes
+            const nodes = data.nodes.map(n => {
+                const isHighRisk = n.properties && (n.properties.risk_tag === 'CRITICAL' || n.properties.risk_tag === 'HIGH');
+                const isCritical = n.properties && n.properties.risk_tag === 'CRITICAL';
+                const isPerson = n.group === 'Person';
+                const baseColor = groupColors[n.group] || '#9baec4';
+
+                return {
+                    id: n.id,
+                    label: n.label || n.name || n.id,
+                    group: n.group,
+                    title: `${n.group}: ${n.label || n.name || n.id} (Click to inspect dossier)`,
+                    color: {
+                        background: baseColor,
+                        border: isCritical ? '#ff4d61' : (isHighRisk ? '#ff9f24' : '#e0efff'),
+                        highlight: {
+                            background: '#ffffff',
+                            border: isCritical ? '#ff4d61' : '#31d1bf'
+                        },
+                        hover: {
+                            background: '#ffffff',
+                            border: '#31d1bf'
+                        }
+                    },
+                    borderWidth: isHighRisk ? 3.5 : 2,
+                    shadow: isHighRisk ? { enabled: true, color: isCritical ? 'rgba(255, 77, 97, 0.7)' : 'rgba(255, 159, 36, 0.6)', size: 14 } : { enabled: false },
+                    font: {
+                        color: '#ffffff',
+                        size: isPerson ? 13 : 11,
+                        face: 'Inter, sans-serif',
+                        strokeWidth: 3,
+                        strokeColor: '#07101d'
+                    },
+                    size: isCritical ? 24 : (isHighRisk ? 20 : (isPerson ? 18 : 14)),
+                    shape: 'dot'
+                };
+            });
+
+            // Transform Edges - make them vivid, bold, and high-contrast
+            const edges = data.edges.map(e => {
+                const rel = e.label || (e.properties && e.properties.relationship) || '';
+                return {
+                    id: e.id,
+                    from: e.from,
+                    to: e.to,
+                    label: rel,
+                    arrows: {
+                        to: { enabled: true, scaleFactor: 0.85 }
+                    },
+                    color: {
+                        color: '#6ca8db',
+                        highlight: '#31d1bf',
+                        hover: '#9bd1ff',
+                        inherit: false,
+                        opacity: 0.95
+                    },
+                    width: 2.2,
+                    font: {
+                        color: '#e5f2ff',
+                        size: 10,
+                        face: 'Inter, sans-serif',
+                        background: '#091524',
+                        strokeWidth: 0,
+                        align: 'horizontal'
+                    },
+                    smooth: {
+                        enabled: true,
+                        type: 'curvedCW',
+                        roundness: 0.18
+                    }
+                };
+            });
+
+            nodesDataSet = new vis.DataSet(nodes);
+            edgesDataSet = new vis.DataSet(edges);
+
+            const container = document.getElementById('network');
+            const options = {
+                physics: {
+                    enabled: true,
+                    stabilization: {
+                        enabled: true,
+                        iterations: 50,
+                        fit: true
+                    },
+                    barnesHut: {
+                        gravitationalConstant: -4000,
+                        centralGravity: 0.3,
+                        springLength: 140,
+                        springConstant: 0.04,
+                        damping: 0.09
+                    }
+                },
+                interaction: {
+                    hover: true,
+                    hoverConnectedEdges: true,
+                    selectConnectedEdges: true,
+                    navigationButtons: true,
+                    keyboard: true,
+                    tooltipDelay: 100
+                }
+            };
+
+            if (network) {
+                network.destroy();
+            }
+
+            network = new vis.Network(container, { nodes: nodesDataSet, edges: edgesDataSet }, options);
+
+            network.once('stabilizationIterationsDone', function() {
+                network.fit({
+                    animation: { duration: 500, easingFunction: 'easeInOutQuad' }
+                });
+            });
+
+            setTimeout(() => {
+                if (network) {
+                    network.fit();
+                    network.redraw();
+                }
+            }, 300);
+
+            network.on('selectNode', p => {
+                if (p.nodes && p.nodes.length > 0) {
+                    loadDossier(p.nodes[0]);
+                }
+            });
+
+            network.on('deselectNode', () => {
+                document.getElementById('dossier').innerHTML = `
+                    <h2 class="entity-title" style="color: var(--muted); margin-top: 12px;">Select an entity</h2>
+                    <p class="muted" style="line-height: 1.5; margin-top: 8px;">
+                        Click on any node in the network to view its risk score breakdown, betweenness broker metrics, connected targets, and active anomaly alerts.
+                    </p>
+                `;
+            });
+        }
+
+        async function focusNode(nodeId) {
+            showGraph();
+            if (!network || !nodesDataSet) return;
+
+            const existing = nodesDataSet.get(nodeId);
+            if (!existing) {
+                const data = await request('/network/search?query=' + encodeURIComponent(nodeId) + '&depth=1');
+                if (data.nodes.length > 0) {
+                    renderGraph(data);
+                }
+            }
+
+            setTimeout(() => {
+                try {
+                    network.selectNodes([nodeId]);
+                    network.focus(nodeId, {
+                        scale: 1.3,
+                        animation: { duration: 600, easingFunction: 'easeInOutQuad' }
+                    });
+                    loadDossier(nodeId);
+                } catch (e) {
+                    console.error('Focus error:', e);
+                }
+            }, 100);
+        }
+
+        async function loadDossier(id) {
+            const dossierEl = document.getElementById('dossier');
+            dossierEl.innerHTML = `<div class="muted" style="padding: 20px 0;">Loading intelligence dossier…</div>`;
+
+            try {
+                const d = await request('/entity/' + encodeURIComponent(id) + '/dossier');
+                const risk = d.risk || { overall_score: 0, severity_level: 'LOW', factors: [] };
+                const sevClass = (risk.severity_level || 'LOW').toLowerCase();
+
+                // Risk Factors
+                const factorsHtml = (risk.factors && risk.factors.length)
+                    ? risk.factors.map(f => `
+                        <li>
+                            ${f.factor}
+                            <b style="float: right; color: var(--amber); font-family: 'JetBrains Mono', monospace;">
+                                ${f.points != null ? '+' + f.points : ''}
+                            </b>
+                        </li>
+                    `).join('')
+                    : '<li class="muted">No negative risk factors identified.</li>';
+
+                // Properties
+                const props = d.properties || {};
+                let propsHtml = '';
+                for (const [k, v] of Object.entries(props)) {
+                    if (['source'].includes(k)) continue;
+                    propsHtml += `<div class="prop-item"><span class="k">${k.replace('_', ' ')}</span><span class="v">${v}</span></div>`;
+                }
+
+                // Active Alerts
+                let alertsHtml = '';
+                if (d.active_alerts && d.active_alerts.length > 0) {
+                    alertsHtml = `
+                        <div class="eyebrow" style="margin-top: 18px; color: var(--red)">Active Anomalies · ${d.active_alerts.length}</div>
+                        <ul class="list">
+                            ${d.active_alerts.map(a => `
+                                <li>
+                                    <span class="pill ${a.severity === 'CRITICAL' ? 'badge-red' : 'badge-amber'}">${a.severity}</span>
+                                    <strong style="margin-left: 4px;">${a.title}</strong>
+                                    <div class="muted" style="font-size: 11px; margin-top: 2px;">${a.description}</div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                }
+
+                // Connected Entities
+                const connectedHtml = (d.connected_nodes && d.connected_nodes.length)
+                    ? d.connected_nodes.slice(0, 10).map(n => `
+                        <div class="connected-entity-item" onclick="focusNode('${n.id}')">
+                            <span class="connected-name">${n.name}</span>
+                            <span class="pill">${n.label}</span>
+                        </div>
+                    `).join('')
+                    : '<div class="muted" style="font-size: 12px;">No direct 1-hop connections.</div>';
+
+                dossierEl.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <span class="eyebrow">${d.type}</span>
+                        ${props.risk_tag ? `<span class="pill ${props.risk_tag === 'CRITICAL' ? 'badge-red' : 'badge-amber'}">${props.risk_tag}</span>` : ''}
+                    </div>
+                    <h2 class="entity-title">${d.name}</h2>
+                    <div class="entity-id">${d.entity_id}</div>
+
+                    <div class="risk-gauge">
+                        <div class="risk-score ${sevClass}">${risk.overall_score}</div>
+                        <div>
+                            <div class="severity-badge ${sevClass}">${risk.severity_level} RISK</div>
+                            <div class="muted" style="font-size: 10px; letter-spacing: 0.6px; margin-top: 2px;">
+                                INVESTIGATIVE RISK SCORE / 100
+                            </div>
+                        </div>
+                    </div>
+
+                    ${propsHtml ? `<div class="props-grid">${propsHtml}</div>` : ''}
+
+                    <div class="metric-grid">
+                        <div class="metric">
+                            <b>${(d.centrality && d.centrality.degree != null) ? d.centrality.degree : '0.0'}</b>
+                            <small>DEGREE</small>
+                        </div>
+                        <div class="metric">
+                            <b>${(d.centrality && d.centrality.betweenness != null) ? d.centrality.betweenness : '0.0'}</b>
+                            <small>BROKER</small>
+                        </div>
+                        <div class="metric">
+                            <b>${(d.centrality && d.centrality.pagerank != null) ? d.centrality.pagerank : '0.0'}</b>
+                            <small>PAGERANK</small>
+                        </div>
+                    </div>
+
+                    ${alertsHtml}
+
+                    <div class="eyebrow" style="margin-top: 18px">Risk Evidence Breakdown</div>
+                    <ul class="list">${factorsHtml}</ul>
+
+                    <div class="eyebrow" style="margin-top: 18px">Connected Entities (${d.connected_nodes.length})</div>
+                    <div style="margin-top: 8px;">${connectedHtml}</div>
+                `;
+            } catch (err) {
+                dossierEl.innerHTML = `<h2 class="entity-title" style="color: var(--red)">Error</h2><p class="muted">${err.message}</p>`;
+            }
+        }
+
+        // Search in Graph
+        async function searchGraph() {
+            const q = document.getElementById('search').value.trim();
+            if (!q) return reloadGraph();
+
+            try {
+                const data = await request('/network/search?query=' + encodeURIComponent(q) + '&depth=1');
+                showGraph();
+                renderGraph(data);
+                updateSummaryStats(data.stats.nodes, data.stats.edges);
+
+                if (!data.nodes.length) {
+                    alert(`No entities matching "${q}" found.`);
+                } else if (data.nodes.length === 1) {
+                    focusNode(data.nodes[0].id);
+                }
+            } catch (err) {
+                alert('Search failed: ' + err.message);
+            }
+        }
+
+        function toggleSearchClear() {
+            const val = document.getElementById('search').value;
+            const btn = document.getElementById('searchClearBtn');
+            btn.style.display = val.length ? 'block' : 'none';
+        }
+
+        function clearSearch() {
+            document.getElementById('search').value = '';
+            toggleSearchClear();
+            reloadGraph();
+        }
+
+        // Overlay: Centrality & Broker Analytics
+        async function showAnalytics() {
+            setNavActive('nav-centrality');
+            const overlay = document.getElementById('overlay');
+            overlay.innerHTML = `<div class="muted">Calculating network centrality metrics…</div>`;
+            overlay.classList.remove('hidden');
+
+            try {
+                const data = await request('/network/analytics/centrality?top_k=25');
+                overlay.innerHTML = `
+                    <div class="eyebrow">Graph Centrality & Broker Detection</div>
+                    <h1>Centrality & Key Influencers Ranking <span class="muted" style="font-size: 15px;">(${data.items.length} top ranked)</span></h1>
+                    <p class="muted" style="max-width: 800px; line-height: 1.5;">
+                        High <b>Betweenness Centrality</b> identifies critical money mules, logistics bridges, and kingpins connecting isolated criminal sub-groups. Click any row to inspect that suspect on the graph canvas.
+                    </p>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Entity Name</th>
+                                    <th>Type</th>
+                                    <th>Degree</th>
+                                    <th>Betweenness Broker</th>
+                                    <th>PageRank</th>
+                                    <th>Risk Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.items.map(i => `
+                                    <tr onclick="focusNode('${i.node_id}')">
+                                        <td><b style="color: #fff;">${i.name}</b></td>
+                                        <td><span class="pill">${i.node_type}</span></td>
+                                        <td style="font-family: 'JetBrains Mono', monospace;">${i.degree_centrality}</td>
+                                        <td style="font-family: 'JetBrains Mono', monospace; color: var(--teal); font-weight: 600;">${i.betweenness_centrality}</td>
+                                        <td style="font-family: 'JetBrains Mono', monospace;">${i.pagerank}</td>
+                                        <td><b style="color: ${i.risk_score >= 70 ? 'var(--red)' : (i.risk_score >= 45 ? 'var(--amber)' : '#34d399')}">${i.risk_score}</b></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (err) {
+                overlay.innerHTML = `<p class="muted">Failed to load centrality: ${err.message}</p>`;
+            }
+        }
+
+        // Overlay: Louvain Community Detection Clusters
+        async function showCommunities() {
+            setNavActive('nav-communities');
+            const overlay = document.getElementById('overlay');
+            overlay.innerHTML = `<div class="muted">Partitioning network using Louvain Community Detection…</div>`;
+            overlay.classList.remove('hidden');
+
+            try {
+                const data = await request('/network/analytics/communities');
+                const comms = data.communities || {};
+                const keys = Object.keys(comms);
+
+                overlay.innerHTML = `
+                    <div class="eyebrow">Unsupervised Subgraph Partitioning</div>
+                    <h1>Louvain Community Clusters <span class="muted" style="font-size: 15px;">(${data.count} Sub-cells Detected)</span></h1>
+                    <p class="muted" style="max-width: 800px; line-height: 1.5; margin-bottom: 20px;">
+                        Algorithmic partitioning identifies tight-knit criminal syndicates, logistics cells, and hawala conduits operating collaboratively. Click any entity chip to examine its dossier.
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px;">
+                        ${keys.map((cid, idx) => {
+                            const members = comms[cid];
+                            return `
+                                <div style="background: #0d1b2e; border: 1px solid var(--line); border-radius: 9px; padding: 18px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <b style="color: #fff; font-size: 15px;">Syndicate Cell #${idx + 1}</b>
+                                        <span class="pill badge-teal">${members.length} entities</span>
+                                    </div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        ${members.map(m => `
+                                            <span class="pill clickable-chip" onclick="focusNode('${m.id}')" title="${m.label}: ${m.name}">
+                                                ${m.name}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } catch (err) {
+                overlay.innerHTML = `<p class="muted">Failed to load communities: ${err.message}</p>`;
+            }
+        }
+
+        // Overlay: Statistical Anomaly Alerts Feed
+        async function showAlerts() {
+            setNavActive('nav-alerts');
+            const overlay = document.getElementById('overlay');
+            overlay.innerHTML = `<div class="muted">Scanning network for statistical anomalies…</div>`;
+            overlay.classList.remove('hidden');
+
+            try {
+                const data = await request('/network/alerts');
+                const alerts = data.alerts || [];
+
+                overlay.innerHTML = `
+                    <div class="eyebrow">Real-Time Anomaly Monitoring</div>
+                    <h1>Active Network Alerts <span class="muted" style="font-size: 15px;">(${data.count} Anomaly Flags)</span></h1>
+                    <p class="muted" style="max-width: 800px; line-height: 1.5; margin-bottom: 20px;">
+                        Flags communication frequency bursts (>3x mean), financial transaction spikes (>2σ), and multi-suspect physical co-location clusters.
+                    </p>
+                    ${alerts.length ? alerts.map(a => `
+                        <article class="alert-card ${a.severity === 'CRITICAL' ? 'critical' : ''}">
+                            <div class="alert-header">
+                                <span class="alert-title">${a.title}</span>
+                                <span class="pill ${a.severity === 'CRITICAL' ? 'badge-red' : 'badge-amber'}">${a.severity}</span>
+                            </div>
+                            <p class="alert-desc">${a.description}</p>
+                            <div class="alert-meta">
+                                <span class="pill">${a.alert_type}</span>
+                                ${a.entities.map(eid => `
+                                    <span class="pill clickable-chip" onclick="focusNode('${eid}')">
+                                        ◉ ${eid}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </article>
+                    `).join('') : '<p class="muted">No active anomalies currently flagged in this dataset.</p>'}
+                `;
+            } catch (err) {
+                overlay.innerHTML = `<p class="muted">Failed to load alerts: ${err.message}</p>`;
+            }
+        }
+
+        // Dataset Management
+        async function changeDataset(name) {
+            try {
+                const res = await request('/ingest/dataset/' + encodeURIComponent(name), { method: 'POST' });
+                document.getElementById('datasetBadgeText').textContent = `${name.replace('_', ' ')} (${res.total_graph_nodes} nodes)`;
+                await reloadGraph();
+            } catch (err) {
+                alert('Failed to switch dataset: ' + err.message);
+            }
+        }
+
+        async function resetDemo() {
+            if (!confirm('Reset graph back to base demonstration dataset?')) return;
+            try {
+                await request('/ingest/demo/reset', { method: 'POST' });
+                document.getElementById('datasetSelect').value = 'demo_graph';
+                document.getElementById('datasetBadgeText').textContent = 'Demo Graph (Active)';
+                await reloadGraph();
+            } catch (err) {
+                alert('Reset failed: ' + err.message);
+            }
+        }
+
+        // FIR Ingestion Modal
+        function openIngest() {
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('ingestStatus').textContent = '';
+            document.getElementById('firText').focus();
+        }
+
+        function closeIngest() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function useSample(num) {
+            const samples = {
+                1: "Accused Tariq Ahmad transferred ₹1800000 to ACC990188231 at Axis Bank. Operative Kabir Mirza met Tariq Ahmad in FIR-2024-900 using vehicle DL01AB9988.",
+                2: "Suspect Vikram Malhotra driving vehicle HR26DQ4321 was intercepted meeting Deepak Agarwal near Okhla Industrial Phase 2. Called on phone +919811223344."
+            };
+            document.getElementById('firText').value = samples[num] || '';
+        }
+
+        async function ingest() {
+            const text = document.getElementById('firText').value.trim();
+            if (!text) return;
+
+            const statusEl = document.getElementById('ingestStatus');
+            statusEl.textContent = 'Extracting entities…';
+
+            try {
+                const res = await request('/ingest/text', {
+                    method: 'POST',
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                statusEl.textContent = `Extracted ${res.extracted_entities_count} entities & ${res.extracted_relations_count} links!`;
+                await reloadGraph();
+                setTimeout(closeIngest, 1000);
+            } catch (err) {
+                statusEl.textContent = 'Ingestion error: ' + err.message;
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (network) {
+                network.redraw();
+                network.fit();
+            }
+        });
+
+        // Initialize on load
+        reloadGraph();
+    </script>
+</body>
+
+</html>

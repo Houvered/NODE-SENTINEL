@@ -6,6 +6,18 @@ from app.models.graph_models import NodeType
 
 logger = logging.getLogger(__name__)
 
+def _safe_float(val: Any, default: float = 1.0) -> float:
+    if val is None:
+        return default
+    if isinstance(val, (int, float)):
+        return float(val)
+    try:
+        cleaned = str(val).replace("₹", "").replace(",", "").replace("$", "").strip()
+        return float(cleaned)
+    except (ValueError, TypeError):
+        return default
+
+
 class GraphAnalytics:
     """Network Analytics Suite for computing Centrality metrics and Community Detection."""
 
@@ -21,21 +33,23 @@ class GraphAnalytics:
         G = nx.Graph()
 
         for n in all_nodes:
-            lbl = n.label.value if isinstance(n.label, NodeType) else str(n.label)
+            lbl = n.label.value if hasattr(n.label, "value") else str(n.label)
             G.add_node(n.id, name=n.name, label=lbl, properties=n.properties)
 
         for e in all_edges:
             # Aggregate weights for parallel edges
-            weight = e.properties.get("weight", 1.0)
-            if e.properties.get("amount"):
-                weight = float(e.properties["amount"]) / 1000.0  # Normalized financial weight
-            elif e.properties.get("frequency"):
-                weight = float(e.properties["frequency"])
-                
+            weight = _safe_float(e.properties.get("weight"), 1.0)
+            if e.properties.get("amount") is not None:
+                weight = max(0.01, _safe_float(e.properties["amount"], 1.0) / 1000.0)  # Normalized financial weight
+            elif e.properties.get("frequency") is not None:
+                weight = max(0.01, _safe_float(e.properties["frequency"], 1.0))
+
             if G.has_edge(e.source, e.target):
                 G[e.source][e.target]["weight"] += weight
+                G[e.source][e.target]["distance"] = 1.0 / max(G[e.source][e.target]["weight"], 0.001)
             else:
-                G.add_edge(e.source, e.target, weight=weight)
+                dist = 1.0 / max(weight, 0.001)
+                G.add_edge(e.source, e.target, weight=weight, distance=dist)
 
         return G
 
@@ -46,8 +60,8 @@ class GraphAnalytics:
             return {"degree": {}, "betweenness": {}, "pagerank": {}}
 
         degree_cent = nx.degree_centrality(G)
-        betweenness_cent = nx.betweenness_centrality(G, weight="weight")
-        
+        betweenness_cent = nx.betweenness_centrality(G, weight="distance")
+
         try:
             pagerank_val = nx.pagerank(G, weight="weight")
         except Exception:

@@ -9,6 +9,18 @@ from app.models.schemas import AlertItem, RiskScoreBreakdown
 
 logger = logging.getLogger(__name__)
 
+def _safe_float(val: Any, default: float = 0.0) -> float:
+    if val is None:
+        return default
+    if isinstance(val, (int, float)):
+        return float(val)
+    try:
+        cleaned = str(val).replace("₹", "").replace(",", "").replace("$", "").strip()
+        return float(cleaned)
+    except (ValueError, TypeError):
+        return default
+
+
 class AnomalyDetector:
     """Statistical anomaly detector & Investigative Risk Score Engine."""
 
@@ -19,26 +31,29 @@ class AnomalyDetector:
     def detect_call_bursts(self) -> List[AlertItem]:
         """Flag CDR relationships with communication frequency > 3x mean."""
         edges = self.graph_engine.get_all_edges()
-        call_edges = [e for e in edges if (e.relationship.value if isinstance(e.relationship, EdgeType) else str(e.relationship)) == EdgeType.CALLS.value]
+        call_edges = [
+            e for e in edges
+            if (e.relationship.value if hasattr(e.relationship, "value") else str(e.relationship)) == EdgeType.CALLS.value
+        ]
 
-        if not call_edges:
+        if not call_edges or len(call_edges) < 2:
             return []
 
         frequencies = []
         for e in call_edges:
-            freq = e.properties.get("frequency", e.properties.get("count", 1))
-            frequencies.append(float(freq))
+            raw_freq = e.properties.get("frequency", e.properties.get("count", 1))
+            frequencies.append(_safe_float(raw_freq, 1.0))
 
         if not frequencies:
             return []
 
-        mean_freq = np.mean(frequencies)
-        std_freq = np.std(frequencies)
+        mean_freq = float(np.mean(frequencies))
         burst_threshold = max(3.0, mean_freq * 3.0)
 
         alerts = []
         for idx, e in enumerate(call_edges):
-            freq = float(e.properties.get("frequency", e.properties.get("count", 1)))
+            raw_freq = e.properties.get("frequency", e.properties.get("count", 1))
+            freq = _safe_float(raw_freq, 1.0)
             if freq >= burst_threshold:
                 source_node = self.graph_engine.get_node(e.source)
                 target_node = self.graph_engine.get_node(e.target)
@@ -65,28 +80,36 @@ class AnomalyDetector:
     def detect_financial_anomalies(self) -> List[AlertItem]:
         """Flag financial transactions > 2 sigma above user/network average."""
         edges = self.graph_engine.get_all_edges()
-        money_edges = [e for e in edges if (e.relationship.value if isinstance(e.relationship, EdgeType) else str(e.relationship)) == EdgeType.TRANSFERRED_MONEY.value]
+        money_edges = [
+            e for e in edges
+            if (e.relationship.value if hasattr(e.relationship, "value") else str(e.relationship)) == EdgeType.TRANSFERRED_MONEY.value
+        ]
 
         if not money_edges:
             return []
 
         amounts = []
         for e in money_edges:
-            amt = e.properties.get("amount", 0.0)
+            amt = _safe_float(e.properties.get("amount", 0.0))
             if amt > 0:
-                amounts.append(float(amt))
+                amounts.append(amt)
 
         if not amounts or len(amounts) < 2:
             return []
 
-        mean_amt = np.mean(amounts)
-        std_amt = np.std(amounts)
+        mean_amt = float(np.mean(amounts))
+        std_amt = float(np.std(amounts))
+
+        # If zero or negligible variance, cannot statistically identify an outlier spike
+        if std_amt < 1e-4:
+            return []
+
         threshold = mean_amt + (2.0 * std_amt)
 
         alerts = []
         for idx, e in enumerate(money_edges):
-            amt = float(e.properties.get("amount", 0.0))
-            if amt >= threshold and amt > 0:
+            amt = _safe_float(e.properties.get("amount", 0.0))
+            if amt >= threshold and amt > mean_amt and amt > 0:
                 sender = self.graph_engine.get_node(e.source)
                 receiver = self.graph_engine.get_node(e.target)
                 src_name = sender.name if sender else e.source
@@ -113,15 +136,28 @@ class AnomalyDetector:
 
     def detect_colocation_clusters(self) -> List[AlertItem]:
         """Flag co-location clusters where multiple individuals appear at same location in tight window."""
-        nodes = self.graph_engine.get_all_nodes()
         edges = self.graph_engine.get_all_edges()
 
-        loc_edges = [e for e in edges if (e.relationship.value if isinstance(e.relationship, EdgeType) else str(e.relationship)) == EdgeType.LOCATED_AT.value]
-        
-        # Group people by location ID
+        loc_edges = [
+            e for e in edges
+            if (e.relationship.value if hasattr(e.relationship, "value") else str(e.relationship)) == EdgeType.LOCATED_AT.value
+        ]
+
+        # Group people by location ID, robust to edge orientation
         loc_to_people: Dict[str, List[str]] = {}
         for e in loc_edges:
-            loc_to_people.setdefault(e.target, []).append(e.source)
+            src_node = self.graph_engine.get_node(e.source)
+            tgt_node = self.graph_engine.get_node(e.target)
+            src_lbl = src_node.label.value if src_node and hasattr(src_node.label, "value") else (str(src_node.label) if src_node else "")
+            tgt_lbl = tgt_node.label.value if tgt_node and hasattr(tgt_node.label, "value") else (str(tgt_node.label) if tgt_node else "")
+
+            if tgt_lbl == NodeType.LOCATION.value:
+                loc_id, person_id = e.target, e.source
+            elif src_lbl == NodeType.LOCATION.value:
+                loc_id, person_id = e.source, e.target
+            else:
+                loc_id, person_id = e.target, e.source
+            loc_to_people.setdefault(loc_id, []).append(person_id)
 
         alerts = []
         for loc_id, person_ids in loc_to_people.items():
@@ -129,7 +165,7 @@ class AnomalyDetector:
             if len(unique_people) >= 3:
                 loc_node = self.graph_engine.get_node(loc_id)
                 loc_name = loc_node.name if loc_node else loc_id
-                
+
                 person_names = []
                 for pid in unique_people:
                     pn = self.graph_engine.get_node(pid)
@@ -164,14 +200,15 @@ class AnomalyDetector:
         """Calculate composite 0-100 Investigative Risk Score with explainable evidence breakdown."""
         node = self.graph_engine.get_node(entity_id)
         if not node:
-            return RiskScoreBreakdown(overall_score=0.0, severity_level="LOW", factors=[{"factor": "Unknown Node", "weight": 0.0}])
+            return RiskScoreBreakdown(overall_score=0.0, severity_level="LOW", factors=[{"factor": "Unknown Node", "points": 0.0}])
 
         factors = []
         raw_score = 0.0
+        node_lbl = node.label.value if hasattr(node.label, "value") else str(node.label)
 
         # 1. Base Tag Risk
         tagged_risk = node.properties.get("risk_tag", node.properties.get("risk_level", "LOW")).upper()
-        if tagged_risk == "HIGH" or tagged_risk == "CRITICAL":
+        if tagged_risk in ("HIGH", "CRITICAL"):
             raw_score += 35.0
             factors.append({"factor": "Tagged High-Risk Suspect in Police Registry", "points": 35.0})
         elif tagged_risk == "MEDIUM":
@@ -195,7 +232,7 @@ class AnomalyDetector:
         # 3. Active Anomaly Alerts Involvement
         all_alerts = self.get_all_alerts()
         entity_alerts = [a for a in all_alerts if entity_id in a.entities]
-        
+
         for alert in entity_alerts:
             if alert.alert_type == "FINANCIAL_ANOMALY":
                 raw_score += 25.0
@@ -205,16 +242,23 @@ class AnomalyDetector:
                 factors.append({"factor": f"Involved in Call Burst Anomaly: {alert.title}", "points": 15.0})
             elif alert.alert_type == "COLOCATION_CLUSTER":
                 raw_score += 10.0
-                factors.append({"factor": f"Co-located in High-Density Suspect Cluster", "points": 10.0})
+                if node_lbl == NodeType.LOCATION.value:
+                    factors.append({"factor": "Identified High-Density Suspect Meeting Hotspot", "points": 10.0})
+                else:
+                    factors.append({"factor": "Co-located in High-Density Suspect Cluster", "points": 10.0})
 
-        # 4. Case Linkage Factor
-        neighbors_info = self.graph_engine.get_neighbors(entity_id, depth=1)
-        linked_cases = [n for n in neighbors_info.get("nodes", []) if (n.label.value if isinstance(n.label, NodeType) else str(n.label)) == NodeType.CASE.value]
-        if linked_cases:
-            points = min(20.0, len(linked_cases) * 10.0)
-            raw_score += points
-            case_names = [c.name for c in linked_cases]
-            factors.append({"factor": f"Directly Linked to {len(linked_cases)} Police Case(s) ({', '.join(case_names)})", "points": round(points, 1)})
+        # 4. Case Linkage Factor (for non-case entities)
+        if node_lbl != NodeType.CASE.value:
+            neighbors_info = self.graph_engine.get_neighbors(entity_id, depth=1)
+            linked_cases = [
+                n for n in neighbors_info.get("nodes", [])
+                if (n.label.value if hasattr(n.label, "value") else str(n.label)) == NodeType.CASE.value and n.id != entity_id
+            ]
+            if linked_cases:
+                points = min(20.0, len(linked_cases) * 10.0)
+                raw_score += points
+                case_names = [c.name for c in linked_cases]
+                factors.append({"factor": f"Directly Linked to {len(linked_cases)} Police Case(s) ({', '.join(case_names)})", "points": round(points, 1)})
 
         final_score = min(100.0, max(0.0, raw_score))
 

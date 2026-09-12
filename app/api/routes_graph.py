@@ -8,8 +8,35 @@ from app.models.graph_models import NodeType
 router = APIRouter(tags=["network"])
 
 
+def _dump(obj):
+    return obj.model_dump() if hasattr(obj, "model_dump") else obj.dict()
+
+
 def graph_payload(nodes, edges):
-    return {"nodes": [{"id": n.id, "label": n.name, "group": n.label.value, "title": f"{n.label.value}: {n.name}", "properties": n.properties} for n in nodes], "edges": [{"id": e.id, "from": e.source, "to": e.target, "label": e.relationship.value, "arrows": "to", "properties": e.properties} for e in edges], "stats": {"nodes": len(nodes), "edges": len(edges)}}
+    return {
+        "nodes": [
+            {
+                "id": n.id,
+                "label": n.name,
+                "group": n.label.value if hasattr(n.label, "value") else str(n.label),
+                "title": f"{(n.label.value if hasattr(n.label, 'value') else str(n.label))}: {n.name}",
+                "properties": n.properties
+            }
+            for n in nodes
+        ],
+        "edges": [
+            {
+                "id": e.id,
+                "from": e.source,
+                "to": e.target,
+                "label": e.relationship.value if hasattr(e.relationship, "value") else str(e.relationship),
+                "arrows": "to",
+                "properties": e.properties
+            }
+            for e in edges
+        ],
+        "stats": {"nodes": len(nodes), "edges": len(edges)}
+    }
 
 
 @router.get("/network/graph")
@@ -25,7 +52,8 @@ def network_overview():
     nodes = graph.get_all_nodes()
     by_type = {node_type.value: 0 for node_type in NodeType}
     for node in nodes:
-        by_type[node.label.value] = by_type.get(node.label.value, 0) + 1
+        lbl = node.label.value if hasattr(node.label, "value") else str(node.label)
+        by_type[lbl] = by_type.get(lbl, 0) + 1
     alerts = AnomalyDetector(graph).get_all_alerts()
     high_risk = [node for node in nodes if str(node.properties.get("risk_tag", "")).upper() in {"HIGH", "CRITICAL"}]
     return {"entity_count": len(nodes), "relationship_count": len(graph.get_all_edges()), "high_risk_count": len(high_risk), "alert_count": len(alerts), "by_type": by_type}
@@ -56,4 +84,17 @@ def dossier(entity_id: str):
     communities = analytics.detect_communities()
     detector = AnomalyDetector(graph)
     neighborhood = graph.get_neighbors(entity_id)
-    return {"entity_id": node.id, "name": node.name, "type": node.label.value, "properties": node.properties, "risk": detector.calculate_investigative_risk_score(entity_id).dict(), "centrality": {key: round(values.get(entity_id, 0.0), 4) for key, values in metrics.items()}, "community_id": communities.get(entity_id), "connected_nodes": [n.to_dict() for n in neighborhood["nodes"] if n.id != entity_id], "active_alerts": [a.dict() for a in detector.get_all_alerts() if entity_id in a.entities]}
+    lbl = node.label.value if hasattr(node.label, "value") else str(node.label)
+    all_alerts = detector.get_all_alerts()
+    active_alerts = [_dump(a) for a in all_alerts if entity_id in a.entities]
+    return {
+        "entity_id": node.id,
+        "name": node.name,
+        "type": lbl,
+        "properties": node.properties,
+        "risk": _dump(detector.calculate_investigative_risk_score(entity_id)),
+        "centrality": {key: round(values.get(entity_id, 0.0), 4) for key, values in metrics.items()},
+        "community_id": communities.get(entity_id),
+        "connected_nodes": [n.to_dict() for n in neighborhood["nodes"] if n.id != entity_id],
+        "active_alerts": active_alerts
+    }

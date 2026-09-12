@@ -9,4 +9,5 @@ router = APIRouter(prefix="/network/alerts", tags=["alerts"])
 @router.get("")
 def alerts():
     results = AnomalyDetector(get_graph_engine()).get_all_alerts()
-    return {"alerts": [item.dict() for item in results], "count": len(results)}
+    dumped = [item.model_dump() if hasattr(item, "model_dump") else item.dict() for item in results]
+    return {"alerts": dumped, "count": len(results)}
