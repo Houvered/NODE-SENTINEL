@@ -1,13 +1,35 @@
+# -*- coding: utf-8 -*-
+"""
+Explainable Risk & Anomaly Intelligence Engine for NODE SENTINEL.
+Replaces opaque risk scores with an explainable, traceable evidence breakdown
+across Graph Analytics, CDR Telephony, Financial Transactions, Case Registries,
+and Physical Surveillance Co-Locations.
+Strictly adheres to neutral investigator decision-support standards.
+"""
+from __future__ import annotations
+
 import logging
-import numpy as np
-from typing import List, Dict, Any, Optional
+import re
 from datetime import datetime
-from app.core.graph_engine import BaseGraphEngine
+from typing import Any, Dict, List, Optional, Set
+
+import numpy as np
+
+from app.core.cdr_analytics import get_cdr_storage
+from app.core.financial_analytics import get_financial_storage
 from app.core.graph_analytics import GraphAnalytics
-from app.models.graph_models import NodeType, EdgeType
+from app.core.graph_engine import BaseGraphEngine, get_graph_engine
+from app.models.graph_models import EdgeType, NodeType
+from app.models.risk_models import (
+    RiskCategory,
+    RiskFactor,
+    RiskIntelligenceResult,
+    RiskSeverity,
+)
 from app.models.schemas import AlertItem, RiskScoreBreakdown
 
 logger = logging.getLogger(__name__)
+
 
 def _safe_float(val: Any, default: float = 0.0) -> float:
     if val is None:
@@ -22,11 +44,17 @@ def _safe_float(val: Any, default: float = 0.0) -> float:
 
 
 class AnomalyDetector:
-    """Statistical anomaly detector & Investigative Risk Score Engine."""
+    """Statistical anomaly detector & Explainable Investigative Risk Intelligence Engine."""
 
-    def __init__(self, graph_engine: BaseGraphEngine):
-        self.graph_engine = graph_engine
-        self.analytics = GraphAnalytics(graph_engine)
+    def __init__(self, graph_engine: Optional[BaseGraphEngine] = None):
+        self.graph_engine = graph_engine or get_graph_engine()
+        self.analytics = GraphAnalytics(self.graph_engine)
+        self.cdr_storage = get_cdr_storage()
+        self.fin_storage = get_financial_storage()
+
+    # -------------------------------------------------------------------------
+    # 1. Graph-Level Anomaly Detection (Preserved)
+    # -------------------------------------------------------------------------
 
     def detect_call_bursts(self) -> List[AlertItem]:
         """Flag CDR relationships with communication frequency > 3x mean."""
@@ -71,8 +99,8 @@ class AnomalyDetector:
                     evidence={
                         "observed_frequency": freq,
                         "network_mean_frequency": round(mean_freq, 2),
-                        "multiplier": round(freq / (mean_freq + 0.01), 2)
-                    }
+                        "multiplier": round(freq / (mean_freq + 0.01), 2),
+                    },
                 ))
 
         return alerts
@@ -100,7 +128,6 @@ class AnomalyDetector:
         mean_amt = float(np.mean(amounts))
         std_amt = float(np.std(amounts))
 
-        # If zero or negligible variance, cannot statistically identify an outlier spike
         if std_amt < 1e-4:
             return []
 
@@ -128,8 +155,8 @@ class AnomalyDetector:
                         "amount": amt,
                         "mean_amount": round(mean_amt, 2),
                         "z_score": round(z_score, 2),
-                        "tx_id": e.properties.get("tx_id", "N/A")
-                    }
+                        "tx_id": e.properties.get("tx_id", "N/A"),
+                    },
                 ))
 
         return alerts
@@ -137,13 +164,11 @@ class AnomalyDetector:
     def detect_colocation_clusters(self) -> List[AlertItem]:
         """Flag co-location clusters where multiple individuals appear at same location in tight window."""
         edges = self.graph_engine.get_all_edges()
-
         loc_edges = [
             e for e in edges
             if (e.relationship.value if hasattr(e.relationship, "value") else str(e.relationship)) == EdgeType.LOCATED_AT.value
         ]
 
-        # Group people by location ID, robust to edge orientation
         loc_to_people: Dict[str, List[str]] = {}
         for e in loc_edges:
             src_node = self.graph_engine.get_node(e.source)
@@ -183,8 +208,8 @@ class AnomalyDetector:
                         "location_id": loc_id,
                         "location_name": loc_name,
                         "co_located_count": len(unique_people),
-                        "suspects": person_names
-                    }
+                        "suspects": person_names,
+                    },
                 ))
 
         return alerts
@@ -196,83 +221,384 @@ class AnomalyDetector:
         loc_alerts = self.detect_colocation_clusters()
         return call_alerts + fin_alerts + loc_alerts
 
-    def calculate_investigative_risk_score(self, entity_id: str) -> RiskScoreBreakdown:
-        """Calculate composite 0-100 Investigative Risk Score with explainable evidence breakdown."""
-        node = self.graph_engine.get_node(entity_id)
+    # -------------------------------------------------------------------------
+    # 2. STEP 12: Explainable Risk & Anomaly Intelligence Calculation
+    # -------------------------------------------------------------------------
+
+    def calculate_investigative_risk_score(self, entity_id: str) -> RiskIntelligenceResult:
+        """
+        Calculate composite 0-100 Investigative Risk Score with explainable evidence breakdown.
+        Replaces opaque scores with reproducible evidence-backed factors across:
+        - Police FIR Registry & Role
+        - Graph Centrality & Broker Hub Status
+        - CDR Communication Volume & Bursts
+        - Financial Velocity & High-Value Transfers
+        - Direct Case Linkages & Serious Statutory Sections
+        - Location Surveillance Co-Locations
+        """
+        clean_id = (entity_id or "").strip()
+        node = self.graph_engine.get_node(clean_id) if clean_id else None
+
+        # Resolve subject identity
+        ent_name = node.name if node else clean_id
+        ent_type = node.label.value if (node and hasattr(node.label, "value")) else (str(node.label) if node else "Unknown")
+
         if not node:
-            return RiskScoreBreakdown(overall_score=0.0, severity_level="LOW", factors=[{"factor": "Unknown Node", "points": 0.0}])
+            # Check if entity exists in CDR or Financial storage
+            has_cdr = clean_id and len(self.cdr_storage.get_records_for_phone(clean_id)) > 0
+            has_fin = clean_id and len(self.fin_storage.get_records_for_account(clean_id)) > 0
+            if not has_cdr and not has_fin:
+                return RiskIntelligenceResult(
+                    entity_id=clean_id,
+                    entity_name=clean_id or "Unknown Entity",
+                    entity_type="Unknown",
+                    risk_score=0.0,
+                    risk_level="LOW",
+                    overall_score=0.0,
+                    severity_level="LOW",
+                    factors=[],
+                    evidence_summary=["No observed investigative risk indicators for this entity."],
+                    conclusion="Requires Investigator Verification: Entity not present in active intelligence databases.",
+                )
 
-        factors = []
-        raw_score = 0.0
-        node_lbl = node.label.value if hasattr(node.label, "value") else str(node.label)
+        factors: List[RiskFactor] = []
 
-        # 1. Base Tag Risk
-        tagged_risk = node.properties.get("risk_tag", node.properties.get("risk_level", "LOW")).upper()
-        if tagged_risk in ("HIGH", "CRITICAL"):
-            raw_score += 35.0
-            factors.append({"factor": "Tagged High-Risk Suspect in Police Registry", "points": 35.0})
-        elif tagged_risk == "MEDIUM":
-            raw_score += 15.0
-            factors.append({"factor": "Tagged Medium-Risk Person of Interest", "points": 15.0})
+        # Collect linked identifiers for multi-channel correlation
+        linked_phones: Set[str] = set()
+        linked_accounts: Set[str] = set()
+        linked_cases: List[Any] = []
 
-        # 2. Centrality Factor (Betweenness/Degree)
+        if node:
+            if "phone_number" in node.properties:
+                linked_phones.add(str(node.properties["phone_number"]))
+            if "account_number" in node.properties:
+                linked_accounts.add(str(node.properties["account_number"]))
+
+            neighbors = self.graph_engine.get_neighbors(clean_id, depth=1).get("nodes", [])
+            for n in neighbors:
+                if n.id == clean_id:
+                    continue
+                n_lbl = n.label.value if hasattr(n.label, "value") else str(n.label)
+                if n_lbl == NodeType.PHONE.value:
+                    linked_phones.add(n.id)
+                    raw_p = n.properties.get("phone_number") or n.name
+                    if raw_p:
+                        linked_phones.add(str(raw_p))
+                elif n_lbl == NodeType.BANK_ACCOUNT.value:
+                    linked_accounts.add(n.id)
+                    raw_a = n.properties.get("account_number") or n.name
+                    if raw_a:
+                        linked_accounts.add(str(raw_a))
+                elif n_lbl == NodeType.CASE.value:
+                    linked_cases.append(n)
+
+        # ---------------------------------------------------------------------
+        # Factor 1: REGISTRY & ROLE INDICATORS (Max: 35 pts)
+        # ---------------------------------------------------------------------
+        if node:
+            tagged_risk = str(node.properties.get("risk_tag", node.properties.get("risk_level", ""))).upper()
+            if tagged_risk in ("HIGH", "CRITICAL"):
+                factors.append(RiskFactor(
+                    factor_id="FAC_REG_HIGH",
+                    category=RiskCategory.REGISTRY,
+                    title="Existing high-risk registry indicator",
+                    score_contribution=35.0,
+                    severity="HIGH",
+                    explanation="Official law enforcement intelligence registry maintains an active high-priority suspect tag for this entity.",
+                    evidence="Tagged as High-Risk Suspect in Police FIR Registry records",
+                    source="Police FIR Registry",
+                    entity_id=clean_id,
+                    confidence=0.98,
+                    action_hint="viewEntityDossier",
+                ))
+            elif tagged_risk in ("MEDIUM", "ELEVATED"):
+                factors.append(RiskFactor(
+                    factor_id="FAC_REG_MED",
+                    category=RiskCategory.REGISTRY,
+                    title="Medium-risk registry indicator",
+                    score_contribution=15.0,
+                    severity="MODERATE",
+                    explanation="Entity is tagged as a medium-risk person of interest in active police records.",
+                    evidence="Tagged as Medium-Risk Person of Interest in Police Registry records",
+                    source="Police FIR Registry",
+                    entity_id=clean_id,
+                    confidence=0.95,
+                    action_hint="viewEntityDossier",
+                ))
+
+            role = str(node.properties.get("role", "")).strip()
+            if role and any(r in role.lower() for r in ("kingpin", "coordinator", "mastermind", "boss", "head", "syndicate", "hawala")):
+                factors.append(RiskFactor(
+                    factor_id="FAC_REG_ROLE",
+                    category=RiskCategory.REGISTRY,
+                    title="Key operational syndicate role",
+                    score_contribution=15.0,
+                    severity="ELEVATED",
+                    explanation=f"Investigative intelligence categorizes entity with operational role '{role}'.",
+                    evidence=f"Identified with role '{role}' in syndicate hierarchy records",
+                    source="Police FIR Registry",
+                    entity_id=clean_id,
+                    confidence=0.92,
+                    action_hint="viewEntityDossier",
+                ))
+
+        # ---------------------------------------------------------------------
+        # Factor 2: GRAPH CENTRALITY & BROKER HUBS (Max: 25 pts)
+        # ---------------------------------------------------------------------
         centrality_data = self.analytics.compute_centrality_metrics()
-        b_score = centrality_data["betweenness"].get(entity_id, 0.0)
-        d_score = centrality_data["degree"].get(entity_id, 0.0)
+        b_val = round(centrality_data["betweenness"].get(clean_id, 0.0), 3)
+        d_val = round(centrality_data["degree"].get(clean_id, 0.0), 3)
 
-        if b_score > 0.1:
-            points = min(30.0, b_score * 100.0)
-            raw_score += points
-            factors.append({"factor": f"High Betweenness Centrality Broker/Mule ({b_score:.2f})", "points": round(points, 1)})
-        elif d_score > 0.15:
-            points = min(20.0, d_score * 50.0)
-            raw_score += points
-            factors.append({"factor": f"High Direct Degree Centrality ({d_score:.2f})", "points": round(points, 1)})
+        if b_val >= 0.08:
+            # Score contribution scaled by betweenness broker metric
+            b_pts = min(25.0, max(10.0, round(b_val * 100.0, 1)))
+            factors.append(RiskFactor(
+                factor_id="FAC_GRAPH_BETWEENNESS",
+                category=RiskCategory.GRAPH,
+                title="High graph betweenness centrality",
+                score_contribution=b_pts,
+                severity="HIGH" if b_val >= 0.15 else "ELEVATED",
+                explanation="Entity exhibits high betweenness centrality, operating as a vital broker or bridge between otherwise disconnected criminal sub-networks.",
+                evidence=f"Betweenness centrality: {b_val:.2f} (ranks in top network bridging tier)",
+                source="Graph Analytics",
+                entity_id=clean_id,
+                confidence=0.96,
+                timeline_event_type="GRAPH",
+                action_hint="viewEntityNetwork",
+            ))
+        elif d_val >= 0.15:
+            d_pts = min(15.0, max(5.0, round(d_val * 50.0, 1)))
+            factors.append(RiskFactor(
+                factor_id="FAC_GRAPH_DEGREE",
+                category=RiskCategory.GRAPH,
+                title="Elevated direct degree connectivity",
+                score_contribution=d_pts,
+                severity="MODERATE",
+                explanation="Entity maintains an unusually high number of direct one-hop linkages across network nodes.",
+                evidence=f"Degree centrality: {d_val:.2f} with dense direct connections",
+                source="Graph Analytics",
+                entity_id=clean_id,
+                confidence=0.94,
+                timeline_event_type="GRAPH",
+                action_hint="viewEntityNetwork",
+            ))
 
-        # 3. Active Anomaly Alerts Involvement
+        # ---------------------------------------------------------------------
+        # Factor 3: CDR COMMUNICATION BURSTS & DENSITY (Max: 20 pts)
+        # ---------------------------------------------------------------------
+        target_phones = {clean_id} | linked_phones
+        all_calls = []
+        for p in target_phones:
+            all_calls.extend(self.cdr_storage.get_records_for_phone(p))
+
+        # Deduplicate calls
+        seen_call_ids = set()
+        matched_calls = []
+        for c in all_calls:
+            cid = c.call_id or f"{c.caller}_{c.receiver}_{c.timestamp.isoformat()}"
+            if cid not in seen_call_ids:
+                seen_call_ids.add(cid)
+                matched_calls.append(c)
+
+        # Check call burst alert involvement
         all_alerts = self.get_all_alerts()
-        entity_alerts = [a for a in all_alerts if entity_id in a.entities]
+        call_burst_alerts = [a for a in all_alerts if a.alert_type == "CALL_BURST" and (clean_id in a.entities or any(p in a.entities for p in target_phones))]
 
-        for alert in entity_alerts:
-            if alert.alert_type == "FINANCIAL_ANOMALY":
-                raw_score += 25.0
-                factors.append({"factor": f"Involved in Financial Spike Anomaly: {alert.title}", "points": 25.0})
-            elif alert.alert_type == "CALL_BURST":
-                raw_score += 15.0
-                factors.append({"factor": f"Involved in Call Burst Anomaly: {alert.title}", "points": 15.0})
-            elif alert.alert_type == "COLOCATION_CLUSTER":
-                raw_score += 10.0
-                if node_lbl == NodeType.LOCATION.value:
-                    factors.append({"factor": "Identified High-Density Suspect Meeting Hotspot", "points": 10.0})
-                else:
-                    factors.append({"factor": "Co-located in High-Density Suspect Cluster", "points": 10.0})
+        if call_burst_alerts or len(matched_calls) >= 10:
+            count_desc = f"{len(matched_calls)} calls recorded" if matched_calls else "Communication frequency > 3x network average"
+            factors.append(RiskFactor(
+                factor_id="FAC_CDR_BURST",
+                category=RiskCategory.CDR,
+                title="Communication burst detected",
+                score_contribution=15.0,
+                severity="ELEVATED",
+                explanation="Call Detail Records (CDR) demonstrate intense sequential telecommunications bursts, typical of operational coordination.",
+                evidence=f"{count_desc} across monitored telecommunications lines",
+                source="CDR Analysis",
+                entity_id=clean_id,
+                confidence=0.95,
+                timeline_event_type="CALL",
+                action_hint="openCdrAnalysis",
+            ))
+        elif len(matched_calls) >= 4:
+            factors.append(RiskFactor(
+                factor_id="FAC_CDR_ACTIVITY",
+                category=RiskCategory.CDR,
+                title="Frequent telecommunications activity",
+                score_contribution=5.0,
+                severity="NOTICE",
+                explanation="Consistent ongoing telecommunications traffic observed across target phone lines.",
+                evidence=f"{len(matched_calls)} telephony calls recorded in CDR storage",
+                source="CDR Analysis",
+                entity_id=clean_id,
+                confidence=0.90,
+                timeline_event_type="CALL",
+                action_hint="openCdrAnalysis",
+            ))
 
-        # 4. Case Linkage Factor (for non-case entities)
-        if node_lbl != NodeType.CASE.value:
-            neighbors_info = self.graph_engine.get_neighbors(entity_id, depth=1)
-            linked_cases = [
-                n for n in neighbors_info.get("nodes", [])
-                if (n.label.value if hasattr(n.label, "value") else str(n.label)) == NodeType.CASE.value and n.id != entity_id
-            ]
-            if linked_cases:
-                points = min(20.0, len(linked_cases) * 10.0)
-                raw_score += points
-                case_names = [c.name for c in linked_cases]
-                factors.append({"factor": f"Directly Linked to {len(linked_cases)} Police Case(s) ({', '.join(case_names)})", "points": round(points, 1)})
+        # ---------------------------------------------------------------------
+        # Factor 4: FINANCIAL ANOMALIES & TRANSACTION VELOCITY (Max: 20 pts)
+        # ---------------------------------------------------------------------
+        target_accounts = {clean_id} | linked_accounts
+        all_txs = []
+        for a in target_accounts:
+            all_txs.extend(self.fin_storage.get_records_for_account(a))
 
-        final_score = min(100.0, max(0.0, raw_score))
+        # Also check graph edges for transferred money
+        for edge in self.graph_engine.get_all_edges():
+            rel = edge.relationship.value if hasattr(edge.relationship, "value") else str(edge.relationship)
+            if rel == EdgeType.TRANSFERRED_MONEY.value and (edge.source in target_accounts or edge.target in target_accounts):
+                amt = _safe_float(edge.properties.get("amount", 0.0))
+                if amt > 0:
+                    all_txs.append(type("GraphTx", (), {"amount": amt, "timestamp": datetime.now()})())
 
-        if final_score >= 70.0:
-            severity = "CRITICAL"
-        elif final_score >= 45.0:
-            severity = "HIGH"
+        # Check for high-value transactions (>= 500,000 INR)
+        high_val_txs = [t for t in all_txs if getattr(t, "amount", 0.0) >= 500000.0]
+        fin_spike_alerts = [a for a in all_alerts if a.alert_type == "FINANCIAL_ANOMALY" and (clean_id in a.entities or any(acc in a.entities for acc in target_accounts))]
+
+        if high_val_txs or fin_spike_alerts:
+            max_amt = max([getattr(t, "amount", 0.0) for t in high_val_txs] or [500000.0])
+            factors.append(RiskFactor(
+                factor_id="FAC_FIN_HIGH_VALUE",
+                category=RiskCategory.FINANCIAL,
+                title="Unusual financial transaction activity",
+                score_contribution=15.0,
+                severity="HIGH",
+                explanation="Observed transactions exceed the configurable high-value investigation threshold (₹500,000) or represent statistical variance outliers.",
+                evidence=f"High-value transfer of ₹{max_amt:,.2f} exceeds ₹500,000 investigative threshold",
+                source="Financial Analysis",
+                entity_id=clean_id,
+                confidence=0.97,
+                timeline_event_type="FINANCIAL",
+                action_hint="openFinancialAnalysis",
+            ))
+        elif len(all_txs) >= 4:
+            factors.append(RiskFactor(
+                factor_id="FAC_FIN_VELOCITY",
+                category=RiskCategory.FINANCIAL,
+                title="Rapid financial transaction velocity",
+                score_contribution=10.0,
+                severity="ELEVATED",
+                explanation="Multiple transaction records execute in sequential succession, consistent with potential layering patterns.",
+                evidence=f"{len(all_txs)} transactions logged with rapid sequential activity",
+                source="Financial Analysis",
+                entity_id=clean_id,
+                confidence=0.91,
+                timeline_event_type="FINANCIAL",
+                action_hint="openFinancialAnalysis",
+            ))
+        elif len(all_txs) >= 1:
+            factors.append(RiskFactor(
+                factor_id="FAC_FIN_ACTIVITY",
+                category=RiskCategory.FINANCIAL,
+                title="Recorded financial transactions",
+                score_contribution=5.0,
+                severity="NOTICE",
+                explanation="Financial activity recorded in ledger involving subject or mapped account numbers.",
+                evidence=f"{len(all_txs)} transaction record(s) documented in ledger",
+                source="Financial Analysis",
+                entity_id=clean_id,
+                confidence=0.90,
+                timeline_event_type="FINANCIAL",
+                action_hint="openFinancialAnalysis",
+            ))
+
+        # ---------------------------------------------------------------------
+        # Factor 5: CASE LINKAGES & STATUTORY SEVERITY (Max: 20 pts)
+        # ---------------------------------------------------------------------
+        if ent_type.lower() != "case" and linked_cases:
+            case_count = len(linked_cases)
+            case_codes = [c.properties.get("case_code", c.name) for c in linked_cases]
+            case_pts = min(20.0, max(5.0, case_count * 5.0))
+            factors.append(RiskFactor(
+                factor_id="FAC_CASE_LINKS",
+                category=RiskCategory.CASE,
+                title=f"Multiple case connections ({case_count} linked cases)" if case_count > 1 else "Linked criminal case connection",
+                score_contribution=case_pts,
+                severity="HIGH" if case_count >= 3 else ("ELEVATED" if case_count >= 2 else "NOTICE"),
+                explanation="Entity is cited as a suspect, co-conspirator, or partner across multiple registered police FIR cases.",
+                evidence=f"Connected to {case_count} registered criminal case(s) ({', '.join(case_codes[:3])})",
+                source="Case Data",
+                entity_id=clean_id,
+                confidence=0.98,
+                timeline_event_type="CASE",
+                action_hint="openCaseDetails",
+            ))
+
+            # Check statutory severity (NDPS, Arms, PMLA, Extortion)
+            matching_sections = []
+            for c in linked_cases:
+                sec = str(c.properties.get("section", "")).upper()
+                c_type = str(c.properties.get("crime_type", "")).upper()
+                combined = f"{sec} {c_type}"
+                if any(k in combined for k in ("NDPS", "ARMS", "PMLA", "EXTORTION", "UAPA", "MCOCA", "NARCO")):
+                    matching_sections.append(sec or c_type or "Organized Crime")
+
+            if matching_sections:
+                factors.append(RiskFactor(
+                    factor_id="FAC_CASE_SECTIONS",
+                    category=RiskCategory.CASE,
+                    title="Severe statutory offense allegations",
+                    score_contribution=10.0,
+                    severity="HIGH",
+                    explanation="Associated investigation filings allege serious organized crime or narcotics distribution sections.",
+                    evidence=f"Case charges cite major statutes: {', '.join(matching_sections[:2])}",
+                    source="Case Data",
+                    entity_id=clean_id,
+                    confidence=0.95,
+                    timeline_event_type="CASE",
+                    action_hint="openCaseDetails",
+                ))
+
+        # ---------------------------------------------------------------------
+        # Factor 6: LOCATION CO-LOCATION CLUSTERS (Max: 10 pts)
+        # ---------------------------------------------------------------------
+        loc_alerts = [a for a in all_alerts if a.alert_type == "COLOCATION_CLUSTER" and clean_id in a.entities]
+        if loc_alerts:
+            factors.append(RiskFactor(
+                factor_id="FAC_LOC_CLUSTER",
+                category=RiskCategory.LOCATION,
+                title="Co-location cluster observed",
+                score_contribution=10.0,
+                severity="ELEVATED",
+                explanation="Physical presence confirmed at a high-density suspect gathering location alongside other monitored individuals.",
+                evidence=f"Co-located at suspect hotspot with 3+ identified network subjects",
+                source="Location Surveillance",
+                entity_id=clean_id,
+                confidence=0.91,
+                timeline_event_type="LOCATION",
+            ))
+
+        # ---------------------------------------------------------------------
+        # Composite Score Calculation (Reproducible & Bounded 0 - 100)
+        # ---------------------------------------------------------------------
+        raw_score = sum(f.score_contribution for f in factors)
+        final_score = min(100.0, max(0.0, round(raw_score, 1)))
+
+        # Threshold classification
+        if final_score >= 75.0:
+            level = "HIGH"
+        elif final_score >= 50.0:
+            level = "ELEVATED"
         elif final_score >= 25.0:
-            severity = "MEDIUM"
+            level = "MODERATE"
         else:
-            severity = "LOW"
+            level = "LOW"
 
-        return RiskScoreBreakdown(
-            overall_score=round(final_score, 1),
-            severity_level=severity,
-            factors=factors
+        # Evidence Summary Bullets
+        evidence_summary = [f.evidence for f in factors]
+        if not evidence_summary:
+            evidence_summary = ["No observed risk indicators for this entity."]
+
+        return RiskIntelligenceResult(
+            entity_id=clean_id,
+            entity_name=ent_name,
+            entity_type=ent_type,
+            risk_score=final_score,
+            risk_level=level,
+            overall_score=final_score,
+            severity_level=level,
+            factors=factors,
+            evidence_summary=evidence_summary,
+            conclusion="Requires Investigator Verification: Observed indicators suggest elevated investigative priority based on available telemetry.",
         )

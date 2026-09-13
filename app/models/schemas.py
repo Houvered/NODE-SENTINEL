@@ -40,6 +40,15 @@ class IngestTextResponse(BaseModel):
     entities: List[Dict[str, Any]]
     relationships: List[Dict[str, Any]]
 
+class IngestFileResponse(BaseModel):
+    status: str
+    filename: str
+    extracted_text: str
+    extracted_entities_count: int
+    extracted_relations_count: int
+    entities: List[Dict[str, Any]]
+    relationships: List[Dict[str, Any]]
+
 class SearchQuery(BaseModel):
     query: str
     node_type: Optional[str] = None
@@ -80,3 +89,45 @@ class EntityDossier(BaseModel):
     community_id: Optional[int]
     connected_nodes: List[Dict[str, Any]]
     active_alerts: List[AlertItem]
+
+
+# ---------------------------------------------------------------------------
+# Universal Search Schemas
+# ---------------------------------------------------------------------------
+
+class UniversalSearchConnection(BaseModel):
+    entity_id: str
+    name: str
+    entity_type: str
+    relationship: Optional[str] = None
+    properties: Dict[str, Any] = Field(default_factory=dict)
+
+
+class UniversalSearchEntityResult(BaseModel):
+    entity_id: str
+    entity_type: str
+    name: str
+    cases: List[str] = Field(default_factory=list)
+    connections: List[Dict[str, Any]] = Field(default_factory=list)
+    properties: Dict[str, Any] = Field(default_factory=dict)
+    risk_level: Optional[str] = None
+    risk_score: Optional[float] = None
+    face_registered: bool = False
+    match_type: str = "exact"
+    match_score: int = 100
+
+
+class UniversalSearchResponse(BaseModel):
+    query: str
+    total_results: int
+    is_exact_match: bool
+    is_ambiguous: bool
+    message: str = ""
+    results: List[UniversalSearchEntityResult] = Field(default_factory=list)
+    grouped_results: Dict[str, List[UniversalSearchEntityResult]] = Field(default_factory=dict)
+
+
+class UniversalSearchRequest(BaseModel):
+    query: str = Field(..., description="Search query string (Person ID, Name, Phone, Vehicle, Case ID, Account)")
+    limit: int = Field(25, ge=1, le=100)
+

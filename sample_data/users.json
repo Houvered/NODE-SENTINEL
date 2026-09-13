@@ -1,0 +1,46 @@
+[
+  {
+    "user_id": "usr_admin",
+    "username": "admin",
+    "full_name": null,
+    "password_hash": "pbkdf2_sha256$100000$90997c7b01f826c4847330bf23e1a483$be905209cab8ee6fdc9b23ac774f4c296afe2497984fa2004e17bd6316cffcbb",
+    "role": "ADMIN",
+    "is_active": true,
+    "created_at": "2026-09-13T10:10:10.033727+00:00",
+    "updated_at": "2026-09-13T10:10:10.050728+00:00",
+    "last_login": "2026-09-13T14:22:09.626697+00:00"
+  },
+  {
+    "user_id": "usr_investigator",
+    "username": "investigator",
+    "full_name": null,
+    "password_hash": "pbkdf2_sha256$100000$cad344295f68e787df95bf37d9b6b86b$809c43fb6746bbf926adce4ca167bd50f99af5b2aefc676c6712ccdb4f358ec6",
+    "role": "INVESTIGATOR",
+    "is_active": true,
+    "created_at": "2026-09-13T10:10:10.033727+00:00",
+    "updated_at": "2026-09-13T10:10:10.067659+00:00",
+    "last_login": "2026-09-13T14:22:09.010450+00:00"
+  },
+  {
+    "user_id": "usr_analyst",
+    "username": "analyst",
+    "full_name": null,
+    "password_hash": "pbkdf2_sha256$100000$118ba78dc204b44849493925c2ce967c$5f3fd34d32fa4ed4f6de060211ceb4882fb62a65eca8509248faa7c6f8c609d6",
+    "role": "ANALYST",
+    "is_active": true,
+    "created_at": "2026-09-13T10:10:10.033727+00:00",
+    "updated_at": "2026-09-13T10:10:10.084692+00:00",
+    "last_login": "2026-09-13T14:22:09.073760+00:00"
+  },
+  {
+    "user_id": "usr_viewer",
+    "username": "viewer",
+    "full_name": null,
+    "password_hash": "pbkdf2_sha256$100000$7669605ea9206b49ec0b67b7c42ebf83$d217ad8e4d7572f2b8a9d7ca31cd4b2e282bf0876533c5f963e13cbd7c2f47b2",
+    "role": "VIEWER",
+    "is_active": true,
+    "created_at": "2026-09-13T10:10:10.033727+00:00",
+    "updated_at": "2026-09-13T10:10:10.102663+00:00",
+    "last_login": "2026-09-13T14:22:09.132792+00:00"
+  }
+]

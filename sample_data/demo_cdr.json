@@ -1,0 +1,122 @@
+[
+  {
+    "call_id": "CDR-JSON-001",
+    "caller": "+919811223344",
+    "receiver": "+919876500112",
+    "timestamp": "2024-07-15T10:14:22",
+    "duration_seconds": 185,
+    "call_type": "OUTGOING",
+    "cell_tower": "OKHLA-T4B",
+    "location": "Okhla Industrial Area",
+    "case_id": "FIR-2024-311",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-002",
+    "caller": "+919876500112",
+    "receiver": "+919811223344",
+    "timestamp": "2024-07-15T11:32:05",
+    "duration_seconds": 420,
+    "call_type": "INCOMING",
+    "cell_tower": "OKHLA-T4B",
+    "location": "Okhla Industrial Area",
+    "case_id": "FIR-2024-311",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-003",
+    "caller": "+919876500112",
+    "receiver": "+919988776655",
+    "timestamp": "2024-07-15T16:45:12",
+    "duration_seconds": 310,
+    "call_type": "OUTGOING",
+    "cell_tower": "CHANDNI-T1",
+    "location": "Chandni Chowk Bullion Market",
+    "case_id": "FIR-2024-405",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-004",
+    "caller": "+919988776655",
+    "receiver": "+919876500112",
+    "timestamp": "2024-07-15T18:20:00",
+    "duration_seconds": 0,
+    "call_type": "MISSED",
+    "cell_tower": "CHANDNI-T1",
+    "location": "Chandni Chowk Bullion Market",
+    "case_id": "FIR-2024-405",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-005",
+    "caller": "+919876500112",
+    "receiver": "+919911002233",
+    "timestamp": "2024-07-16T07:22:30",
+    "duration_seconds": 45,
+    "call_type": "OUTGOING",
+    "cell_tower": "OKHLA-T4B",
+    "location": "Okhla Industrial Area",
+    "case_id": "FIR-2024-311",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-006",
+    "caller": "+919911002233",
+    "receiver": "+919876500112",
+    "timestamp": "2024-07-16T07:35:12",
+    "duration_seconds": 85,
+    "call_type": "INCOMING",
+    "cell_tower": "OKHLA-T4B",
+    "location": "Okhla Industrial Area",
+    "case_id": "FIR-2024-311",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-007",
+    "caller": "+919876500112",
+    "receiver": "+919811223344",
+    "timestamp": "2024-07-16T08:15:00",
+    "duration_seconds": 340,
+    "call_type": "OUTGOING",
+    "cell_tower": "OKHLA-T4B",
+    "location": "Okhla Industrial Area",
+    "case_id": "FIR-2024-311",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-008",
+    "caller": "+919876500112",
+    "receiver": "+919933445566",
+    "timestamp": "2024-07-16T08:32:05",
+    "duration_seconds": 95,
+    "call_type": "OUTGOING",
+    "cell_tower": "OKHLA-T4B",
+    "location": "Okhla Industrial Area",
+    "case_id": "FIR-2024-311",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-009",
+    "caller": "+919876500112",
+    "receiver": "+919811223344",
+    "timestamp": "2024-07-16T09:05:12",
+    "duration_seconds": 180,
+    "call_type": "OUTGOING",
+    "cell_tower": "OKHLA-T4B",
+    "location": "Okhla Industrial Area",
+    "case_id": "FIR-2024-311",
+    "source_document": "demo_cdr.json"
+  },
+  {
+    "call_id": "CDR-JSON-010",
+    "caller": "+919811223344",
+    "receiver": "+919876500112",
+    "timestamp": "2024-07-16T09:25:30",
+    "duration_seconds": 220,
+    "call_type": "OUTGOING",
+    "cell_tower": "OKHLA-T4B",
+    "location": "Okhla Industrial Area",
+    "case_id": "FIR-2024-311",
+    "source_document": "demo_cdr.json"
+  }
+]
