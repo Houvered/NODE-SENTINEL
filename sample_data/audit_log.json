@@ -32253,5 +32253,24 @@
       "query": "ACC990188231",
       "results_count": 1
     }
+  },
+  {
+    "log_id": "audit_d0c2b4997fa2",
+    "event_id": "audit_d0c2b4997fa2",
+    "timestamp": "2026-09-13T20:37:58.164646+00:00",
+    "user_id": null,
+    "username": null,
+    "role": null,
+    "action": "SYSTEM_SHUTDOWN",
+    "resource_type": null,
+    "resource": null,
+    "resource_id": null,
+    "status": "SUCCESS",
+    "result": "SUCCESS",
+    "ip_address": null,
+    "user_agent": null,
+    "details": {
+      "project": "NODE SENTINEL"
+    }
   }
 ]
