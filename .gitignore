@@ -8,3 +8,4 @@ __pycache__/
 env/
 venv/
 *.log
+sample_data/audit_log.json
