@@ -45,6 +45,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--total", type=int, default=20000, help="Total rows in sample (incl. all frauds)")
     p.add_argument("--seed", type=int, default=42, help="Reservoir sampling seed")
     p.add_argument("--fraud-case", default="CASE_PAYSIM_FRAUD", help="case_id tagged on isFraud=1 rows")
+    p.add_argument("--fraud-first", action="store_true",
+                   help="Order frauds by amount desc first (for <=2000-row live graph seeds)")
     return p.parse_args()
 
 
@@ -120,8 +122,14 @@ def main() -> int:
 
         # Index rows for deterministic tx ids / timestamps, frauds first then legit.
         combined = [("F", r) for r in frauds] + [("L", r) for r in reservoir]
-        random.shuffle(combined)  # mix so timeline isn't fraud-block then legit-block
-        combined.sort(key=lambda t: float(t[1]["step"]))  # chronological
+        if args.fraud_first:
+            # Live-graph seed: highest-value frauds first, then legit context.
+            combined = ([("F", r) for r in
+                         sorted(frauds, key=lambda x: float(x.get("amount") or 0), reverse=True)]
+                        + [("L", r) for r in reservoir])[:args.total]
+        else:
+            random.shuffle(combined)  # mix so timeline isn't fraud-block then legit-block
+            combined.sort(key=lambda t: float(t[1]["step"]))  # chronological
 
         out_path = Path(args.out_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)

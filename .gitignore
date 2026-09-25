@@ -13,3 +13,4 @@ sample_data/audit_log.json
 sample_data/email_fraud_scored.csv
 sample_data/paysim_financial_sample.csv
 sample_data/paysim_verify_500.csv
+sample_data/paysim_live_seed.csv

@@ -4124,7 +4124,15 @@
                 directly explore their criminal network in the Knowledge Graph.
             </p>
 
-            <div class="modal-tabs">
+            <!-- Production gate: biometric search disabled until real watchlist images arrive -->
+            <div id="faceDisabledNotice" class="hidden"
+                style="margin-top: 12px; padding: 14px 16px; border-radius: 10px; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.45); color: #fcd34d; font-size: 13px; line-height: 1.55;">
+                <b>📷 Face Search disabled.</b> The real watchlist (Dataset.csv, 31 identities) ships
+                without image files, so biometric enrollment is not possible yet. Person records remain
+                searchable via Universal Search. Re-enable once the watchlist portraits are provided.
+            </div>
+
+            <div class="modal-tabs" id="faceModalTabs">
                 <button id="faceTabUpload" class="modal-tab-btn active" onclick="switchFaceTab('upload')">Upload Image
                     File</button>
                 <button id="faceTabDemo" class="modal-tab-btn" onclick="switchFaceTab('demo')">Quick Demo Profiles
@@ -8291,12 +8299,35 @@ Select a subject or click any suggested prompt below to begin.
             // -------------------------------------------------------------------
             // BIOMETRIC FACE SEARCH INTEGRATION
             // -------------------------------------------------------------------
+            // Production gate: real watchlist images are pending (Dataset.csv labels
+            // only), so biometric search entry points show a disabled notice.
+            // Set to true once watchlist portraits are enrolled. Backend endpoints
+            // and tests remain intact.
+            const FACE_SEARCH_ENABLED = false;
 
             let selectedFaceFile = null;
 
             function openFaceSearchModal() {
                 const modal = document.getElementById('faceSearchModal');
+                if (!FACE_SEARCH_ENABLED) {
+                    if (modal) modal.classList.remove('hidden');
+                    const notice = document.getElementById('faceDisabledNotice');
+                    if (notice) notice.classList.remove('hidden');
+                    const tabs = document.getElementById('faceModalTabs');
+                    if (tabs) tabs.classList.add('hidden');
+                    const up = document.getElementById('faceUploadSection');
+                    if (up) up.classList.add('hidden');
+                    const demo = document.getElementById('faceDemoSection');
+                    if (demo) demo.classList.add('hidden');
+                    const resBox = document.getElementById('faceSearchResultBox');
+                    if (resBox) resBox.classList.add('hidden');
+                    return;
+                }
                 if (modal) modal.classList.remove('hidden');
+                const noticeOff = document.getElementById('faceDisabledNotice');
+                if (noticeOff) noticeOff.classList.add('hidden');
+                const tabsOff = document.getElementById('faceModalTabs');
+                if (tabsOff) tabsOff.classList.remove('hidden');
                 switchFaceTab('upload');
                 const resBox = document.getElementById('faceSearchResultBox');
                 if (resBox) resBox.classList.add('hidden');

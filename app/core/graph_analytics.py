@@ -53,14 +53,31 @@ class GraphAnalytics:
 
         return G
 
-    def compute_centrality_metrics(self) -> Dict[str, Dict[str, float]]:
-        """Compute Degree, Betweenness Centrality, and PageRank."""
+    def compute_centrality_metrics(
+        self,
+        max_exact_nodes: int = 800,
+        approx_samples: int = 200,
+    ) -> Dict[str, Dict[str, float]]:
+        """Compute Degree, Betweenness Centrality, and PageRank.
+
+        Exact betweenness is O(n*m) — unusable on production-size graphs
+        (4k+ nodes took minutes). Above max_exact_nodes, betweenness falls
+        back to a deterministic sampled approximation (seed=42); degree and
+        PageRank stay exact. Small graphs are unaffected (exact path).
+        """
         G = self._get_networkx_graph()
         if len(G) == 0:
             return {"degree": {}, "betweenness": {}, "pagerank": {}}
 
         degree_cent = nx.degree_centrality(G)
-        betweenness_cent = nx.betweenness_centrality(G, weight="distance")
+        if len(G) <= max_exact_nodes:
+            betweenness_cent = nx.betweenness_centrality(G, weight="distance")
+        else:
+            logger.info(
+                f"Graph has {len(G)} nodes; using sampled betweenness "
+                f"(k={approx_samples}) for bounded latency.")
+            betweenness_cent = nx.betweenness_centrality(
+                G, k=min(approx_samples, len(G)), weight="distance", seed=42)
 
         try:
             pagerank_val = nx.pagerank(G, weight="weight")

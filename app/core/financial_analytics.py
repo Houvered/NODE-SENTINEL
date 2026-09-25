@@ -181,14 +181,66 @@ class FinancialService:
         # Store in indexed memory
         records_added = self.storage.add_records(records)
 
+        # Fast resolution indexes: the per-record graph scans in
+        # find_or_create_* are O(nodes)/O(edges) each, i.e. O(n^2) for
+        # production-size seeds (70s+ for 2k rows). Snapshot once here.
+        id_index: Dict[str, Node] = {}
+        prop_index: Dict[str, Node] = {}
+        stripped_index: Dict[str, Node] = {}
+
+        def _register_account_node(node: Node) -> None:
+            id_index[node.id] = node
+            lbl = node.label.value if hasattr(node.label, "value") else str(node.label)
+            if lbl == NodeType.BANK_ACCOUNT.value or node.id.startswith("ACC_"):
+                raw_acc = (node.properties.get("account_number")
+                           or node.properties.get("account_id") or node.name or node.id)
+                prop_index[str(raw_acc)] = node
+                stripped_index[str(raw_acc).replace("ACC", "").replace("_", "")] = node
+                stripped_index[node.id.replace("ACC", "").replace("_", "")] = node
+
+        for _n in self.graph.get_all_nodes():
+            _register_account_node(_n)
+
+        def _resolve_account_fast(account_id: str) -> Tuple[Node, bool]:
+            hit = id_index.get(account_id)
+            if hit is not None:
+                return hit, False
+            hit = prop_index.get(account_id)
+            if hit is not None:
+                return hit, False
+            hit = stripped_index.get(account_id.replace("ACC", "").replace("_", ""))
+            if hit is not None:
+                return hit, False
+            canonical_id = (account_id if account_id.startswith("ACC_")
+                            else f"ACC_{account_id.replace('ACC', '')}")
+            hit = id_index.get(canonical_id)
+            if hit is not None:
+                return hit, False
+            new_node = Node(
+                id=canonical_id,
+                label=NodeType.BANK_ACCOUNT,
+                name=account_id,
+                properties={"account_number": account_id, "source": "financial_ingest"},
+            )
+            self.graph.add_node(new_node)
+            _register_account_node(new_node)
+            return new_node, True
+
+        case_cache: Dict[str, Node] = {}
+        involved_pairs = {
+            (e.source, e.target) for e in self.graph.get_all_edges()
+            if (e.relationship.value if hasattr(e.relationship, "value")
+                else str(e.relationship)) == EdgeType.INVOLVED_IN.value
+        }
+
         for rec in records:
             # Resolve or create sender node
-            sender_node, created_s = self.find_or_create_account_node(rec.sender)
+            sender_node, created_s = _resolve_account_fast(rec.sender)
             if created_s:
                 entities_created += 1
 
             # Resolve or create receiver node
-            receiver_node, created_r = self.find_or_create_account_node(rec.receiver)
+            receiver_node, created_r = _resolve_account_fast(rec.receiver)
             if created_r:
                 entities_created += 1
 
@@ -223,16 +275,15 @@ class FinancialService:
 
             # If case_id is present, link sender and receiver to case if not already linked
             if rec.case_id:
-                case_node, created_c = self.find_or_create_case_node(rec.case_id)
-                if created_c:
-                    entities_created += 1
+                case_node = case_cache.get(rec.case_id)
+                if case_node is None:
+                    case_node, created_c = self.find_or_create_case_node(rec.case_id)
+                    case_cache[rec.case_id] = case_node
+                    if created_c:
+                        entities_created += 1
 
                 # Check if edge already exists from sender to case
-                existing_s_case = any(
-                    e.source == sender_node.id and e.target == case_node.id and e.relationship == EdgeType.INVOLVED_IN
-                    for e in self.graph.get_all_edges()
-                )
-                if not existing_s_case:
+                if (sender_node.id, case_node.id) not in involved_pairs:
                     self.graph.add_edge(
                         Edge(
                             source=sender_node.id,
@@ -241,6 +292,7 @@ class FinancialService:
                             properties={"role": "Financial Party", "case_id": rec.case_id},
                         )
                     )
+                    involved_pairs.add((sender_node.id, case_node.id))
                     relationships_created += 1
 
         return records_added, entities_created, relationships_created

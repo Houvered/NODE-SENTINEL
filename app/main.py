@@ -25,6 +25,7 @@ from app.models.audit_models import AuditAction
 from app.core.graph_engine import get_graph_engine
 from app.core.face_storage import get_face_storage
 from app.core.demo_face_data import seed_demo_face_database
+from app.core.production_seed import seed_real_data_if_available
 from app.api.routes_ingest import ingest_sample_batch_data
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -63,12 +64,26 @@ async def lifespan(fastapi_app: FastAPI):
     except Exception as e:
         logger.warning(f"Could not auto-seed face database: {e}")
 
-    # Initialize demo financial storage
+    # Wire locally-available real data (PaySim live seed, scored emails,
+    # face watchlist manifest); falls back silently when artifacts are absent.
+    try:
+        seed_summary = seed_real_data_if_available(graph)
+        logger.info(f"Production seeding mode={seed_summary['mode']}: "
+                    f"paysim={seed_summary['paysim'].get('records_added', 0)} "
+                    f"email_cases={seed_summary['email'].get('cases_created', 0)} "
+                    f"watchlist_persons={seed_summary['faces'].get('persons_created', 0)}")
+    except Exception as e:
+        logger.warning(f"Production seeding failed, using synthetic fallback: {e}")
+        seed_summary = {"mode": "synthetic-fallback"}
+
+    # Initialize demo financial storage (synthetic fallback only when no
+    # real PaySim live seed was ingested above).
     try:
         from app.core.financial_analytics import get_financial_storage, get_financial_service
         from app.core.financial_parser import FinancialParser
         f_store = get_financial_storage()
-        if len(f_store.get_all_records()) == 0:
+        paysim_live = bool(seed_summary.get("paysim", {}).get("records_added"))
+        if not paysim_live and len(f_store.get_all_records()) == 0:
             demo_csv_path = os.path.join(settings.BASE_DIR, "sample_data", "demo_financial.csv")
             if os.path.exists(demo_csv_path):
                 with open(demo_csv_path, "rb") as df:
