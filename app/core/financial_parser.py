@@ -108,11 +108,11 @@ def parse_transaction_type(type_val: Any) -> TransactionType:
     raw = str(type_val).strip().upper()
     if raw in {"TRANSFER", "NEFT", "RTGS", "IMPS", "WIRE", "UPI", "INTERNAL_TRANSFER"}:
         return TransactionType.TRANSFER
-    elif raw in {"DEPOSIT", "CASH_DEPOSIT", "CREDIT"}:
+    elif raw in {"DEPOSIT", "CASH_DEPOSIT", "CREDIT", "CASH_IN", "CASHIN"}:
         return TransactionType.DEPOSIT
-    elif raw in {"WITHDRAWAL", "ATM", "CASH_WITHDRAWAL", "DEBIT"}:
+    elif raw in {"WITHDRAWAL", "ATM", "CASH_WITHDRAWAL", "DEBIT", "CASH_OUT", "CASHOUT", "CASH-OUT"}:
         return TransactionType.WITHDRAWAL
-    elif raw in {"PAYMENT", "POS", "BILL", "PURCHASE"}:
+    elif raw in {"PAYMENT", "POS", "BILL", "PURCHASE", "DEBIT_CARD"}:
         return TransactionType.PAYMENT
     elif raw in {"REFUND", "REVERSAL", "CHARGEBACK"}:
         return TransactionType.REFUND
@@ -156,7 +156,7 @@ class FinancialParser:
         """
         row_desc = f"Record #{row_id}" if row_id is not None else "Record"
 
-        # Sender aliases
+        # Sender aliases (incl. PaySim nameOrig / nameorig)
         sender_raw = (
             data.get("sender")
             or data.get("sender_account")
@@ -165,8 +165,11 @@ class FinancialParser:
             or data.get("source_account")
             or data.get("payer")
             or data.get("origin")
+            or data.get("nameorig")
+            or data.get("name_orig")
+            or data.get("nameOrig")
         )
-        # Receiver aliases
+        # Receiver aliases (incl. PaySim nameDest / namedest)
         receiver_raw = (
             data.get("receiver")
             or data.get("receiver_account")
@@ -175,6 +178,10 @@ class FinancialParser:
             or data.get("destination_account")
             or data.get("payee")
             or data.get("beneficiary")
+            or data.get("namedest")
+            or data.get("name_dest")
+            or data.get("nameDest")
+            or data.get("destination")
         )
 
         if not sender_raw:
@@ -203,7 +210,7 @@ class FinancialParser:
         )
         amount = validate_amount(amount_raw, tx_type)
 
-        # Timestamp
+        # Timestamp (incl. PaySim 'step' = hours since 2024-01-01)
         ts_raw = (
             data.get("timestamp")
             or data.get("tx_time")
@@ -213,8 +220,26 @@ class FinancialParser:
             or data.get("tx_date")
         )
         if not ts_raw:
-            raise ValueError(f"{row_desc}: Missing required transaction timestamp")
-        timestamp = parse_timestamp_safe(ts_raw)
+            step_raw = data.get("step")
+            if step_raw is not None and str(step_raw).strip() != "":
+                try:
+                    from datetime import timedelta
+                    step_hours = int(float(str(step_raw).strip()))
+                    # Spread rows within the hour deterministically using row_id
+                    # so velocity bursts remain detectable without exact collisions.
+                    minute_jitter = 0
+                    if row_id is not None:
+                        try:
+                            minute_jitter = int(str(row_id)) % 60
+                        except Exception:
+                            minute_jitter = 0
+                    timestamp = datetime(2024, 1, 1) + timedelta(hours=step_hours, minutes=minute_jitter)
+                except Exception as ex:
+                    raise ValueError(f"{row_desc}: Invalid PaySim step '{step_raw}': {ex}")
+            else:
+                raise ValueError(f"{row_desc}: Missing required transaction timestamp")
+        else:
+            timestamp = parse_timestamp_safe(ts_raw)
 
         # Optional fields
         currency = str(data.get("currency") or data.get("curr") or "INR").strip().upper()
@@ -229,6 +254,13 @@ class FinancialParser:
             or data.get("ref_id")
         )
         tx_id_str = str(tx_id).strip() if tx_id else None
+        if not tx_id_str and row_id is not None:
+            # PaySim-style rows have no tx id — generate deterministic one
+            # so storage dedup + graph edges stay unique.
+            try:
+                tx_id_str = f"PAYSIM-{int(str(row_id)):07d}"
+            except Exception:
+                tx_id_str = f"PAYSIM-{row_id}"
 
         account_id = data.get("account_id") or data.get("account_number") or data.get("acct_no")
         account_id_str = str(account_id).strip() if account_id else None
@@ -244,6 +276,29 @@ class FinancialParser:
 
         description = data.get("description") or data.get("reference") or data.get("narrative") or data.get("remarks")
         description_str = str(description).strip() if description else None
+
+        # PaySim enrichment: preserve fraud labels + balances in description,
+        # tag frauds to a dedicated case so they link in graph/timeline.
+        is_fraud_raw = data.get("isfraud")
+        is_flagged_raw = data.get("isflaggedfraud")
+        try:
+            is_fraud = int(float(str(is_fraud_raw).strip())) if is_fraud_raw not in (None, "") else 0
+        except Exception:
+            is_fraud = 0
+        if is_fraud == 1 and not case_id_str:
+            case_id_str = "CASE_PAYSIM_FRAUD"
+        paysim_bits = []
+        if is_fraud_raw not in (None, ""):
+            paysim_bits.append(f"isFraud={is_fraud}")
+        if is_flagged_raw not in (None, ""):
+            paysim_bits.append(f"isFlaggedFraud={str(is_flagged_raw).strip()}")
+        for k in ("oldbalanceorg", "newbalanceorig", "oldbalancedest", "newbalancedest", "step"):
+            v = data.get(k)
+            if v not in (None, ""):
+                paysim_bits.append(f"{k}={str(v).strip()}")
+        if paysim_bits:
+            extra = "PaySim[" + ", ".join(paysim_bits) + "]"
+            description_str = f"{description_str} | {extra}" if description_str else extra
 
         return FinancialRecord(
             transaction_id=tx_id_str,

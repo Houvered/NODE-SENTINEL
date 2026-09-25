@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException, Query
 
 from app.core.anomaly_detector import AnomalyDetector
