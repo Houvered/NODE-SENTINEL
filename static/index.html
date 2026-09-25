@@ -20,17 +20,22 @@
     </script>
     <style>
         :root {
-            --bg: #070f1e;
-            --surface: #0c182b;
-            --surface2: #12253f;
-            --surface-hover: #1a3557;
-            --line: #1e3652;
+            /* CyFocus theme: near-black high-contrast base, lime action accent */
+            --bg: #04070d;
+            --surface: #0a111f;
+            --surface2: #0f192e;
+            --surface-hover: #16263f;
+            --line: #14263d;
             --line-light: rgba(255, 255, 255, 0.08);
-            --text: #f0f6fc;
+            --text: #f2f7fd;
             --text-secondary: #c9d9ec;
-            --muted: #8ca4c2;
+            --muted: #8499b5;
             --teal: #2dd4bf;
             --teal-glow: rgba(45, 212, 191, 0.28);
+            --accent: #bef264;
+            --accent-strong: #a8e02e;
+            --accent-ink: #1a2405;
+            --accent-glow: rgba(190, 242, 100, 0.28);
             --amber: #fbbf24;
             --red: #f87171;
             --blue: #38bdf8;
@@ -38,9 +43,9 @@
             --pink: #f472b6;
             --coral: #fb923c;
             --indigo: #818cf8;
-            --card-bg: rgba(12, 24, 43, 0.85);
-            --card-border: rgba(38, 64, 94, 0.65);
-            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+            --card-bg: rgba(10, 17, 31, 0.92);
+            --card-border: rgba(120, 150, 190, 0.16);
+            --card-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
         }
 
         * {
@@ -101,7 +106,7 @@
             gap: 16px;
             padding: 0 24px;
             border-bottom: 1px solid var(--line);
-            background: linear-gradient(180deg, #0f2038 0%, #0a172a 100%);
+            background: linear-gradient(180deg, #0b1424 0%, #070d18 100%);
             z-index: 10;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
@@ -121,8 +126,8 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: var(--teal);
-            box-shadow: 0 0 16px var(--teal);
+            background: var(--accent);
+            box-shadow: 0 0 16px var(--accent-glow);
             margin-right: 11px;
             display: inline-block;
             animation: pulse-glow 2.5s infinite alternate ease-in-out;
@@ -130,11 +135,11 @@
 
         @keyframes pulse-glow {
             from {
-                box-shadow: 0 0 8px var(--teal);
+                box-shadow: 0 0 8px var(--accent-glow);
             }
 
             to {
-                box-shadow: 0 0 20px var(--teal), 0 0 35px var(--teal);
+                box-shadow: 0 0 20px var(--accent-glow), 0 0 35px var(--accent-glow);
             }
         }
 
@@ -228,7 +233,7 @@
         /* Sidebar Navigation */
         .sidebar {
             padding: 16px 12px;
-            background: #081322;
+            background: #070d18;
             border-right: 1px solid var(--line);
             display: flex;
             flex-direction: column;
@@ -272,16 +277,16 @@
         }
 
         .nav.active {
-            background: linear-gradient(90deg, rgba(23, 50, 79, 0.9) 0%, rgba(13, 29, 49, 0.6) 100%);
+            background: linear-gradient(90deg, rgba(190, 242, 100, 0.14) 0%, rgba(190, 242, 100, 0.03) 100%);
             color: #fff;
-            border-left: 3px solid var(--teal);
-            box-shadow: inset 0 0 12px rgba(45, 212, 191, 0.08);
+            border-left: 3px solid var(--accent);
+            box-shadow: inset 0 0 12px rgba(190, 242, 100, 0.06);
         }
 
         .nav span.icon {
             font-size: 14px;
             width: 18px;
-            color: var(--teal);
+            color: var(--accent);
             display: inline-flex;
             justify-content: center;
             flex-shrink: 0;
@@ -316,7 +321,7 @@
             gap: 10px;
             padding: 0 18px;
             border-bottom: 1px solid var(--line);
-            background: #0b172a;
+            background: #080f1c;
             z-index: 5;
         }
 
@@ -407,17 +412,17 @@
         }
 
         .button.primary {
-            background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%);
-            border: 1px solid #38edd5;
-            color: #04211e;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+            border: 1px solid var(--accent);
+            color: var(--accent-ink);
             font-weight: 700;
-            box-shadow: 0 2px 10px rgba(45, 212, 191, 0.25);
+            box-shadow: 0 2px 10px var(--accent-glow);
         }
 
         .button.primary:hover {
-            background: linear-gradient(135deg, #34e0cb 0%, #11a396 100%);
-            box-shadow: 0 0 14px var(--teal-glow);
-            color: #021614;
+            background: linear-gradient(135deg, #cdf765 0%, #b5ec4a 100%);
+            box-shadow: 0 0 14px var(--accent-glow);
+            color: #101a02;
         }
 
         /* Direct Full-Height Network Canvas */
@@ -426,7 +431,7 @@
             width: 100%;
             height: 100%;
             min-height: 0;
-            background: radial-gradient(ellipse at center, #102640 0%, #060e1a 75%);
+            background: radial-gradient(ellipse at center, #0a1526 0%, #03060c 75%);
             display: block;
             position: relative;
         }
@@ -900,10 +905,10 @@
 
         .metric {
             padding: 10px 6px;
-            background: #112236;
-            border-radius: 7px;
+            background: var(--surface);
+            border-radius: 10px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--card-border);
         }
 
         .metric b {
@@ -920,6 +925,71 @@
             letter-spacing: 0.7px;
             margin-top: 3px;
             display: block;
+        }
+
+        /* CyFocus-style KPI strip: real-time insights at a glance */
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--line);
+            background: #060b14;
+            z-index: 4;
+        }
+
+        .kpi-card {
+            position: relative;
+            overflow: hidden;
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 10px 14px 9px;
+            min-width: 0;
+        }
+
+        .kpi-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--kpi-accent, var(--accent));
+            opacity: 0.9;
+        }
+
+        .kpi-label {
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .kpi-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 21px;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1.25;
+            margin-top: 2px;
+        }
+
+        .kpi-sub {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--kpi-accent, var(--accent));
+            margin-top: 1px;
+        }
+
+        @media (max-width: 900px) {
+            .kpi-strip {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
         .list {
@@ -3816,6 +3886,30 @@
                 <button class="button primary" onclick="openIngest()">+ Ingest FIR</button>
             </div>
 
+            <!-- CyFocus-style KPI strip: real-time insights at a glance -->
+            <div class="kpi-strip" id="kpiStrip">
+                <div class="kpi-card" style="--kpi-accent: var(--accent);">
+                    <div class="kpi-label">Entities</div>
+                    <div class="kpi-value" id="kpiEntities">--</div>
+                    <div class="kpi-sub">TRACKED NODES</div>
+                </div>
+                <div class="kpi-card" style="--kpi-accent: var(--teal);">
+                    <div class="kpi-label">Links</div>
+                    <div class="kpi-value" id="kpiLinks">--</div>
+                    <div class="kpi-sub">RELATIONSHIPS</div>
+                </div>
+                <div class="kpi-card" style="--kpi-accent: var(--amber);">
+                    <div class="kpi-label">Active Cases</div>
+                    <div class="kpi-value" id="kpiCases">--</div>
+                    <div class="kpi-sub">CASE NODES</div>
+                </div>
+                <div class="kpi-card" style="--kpi-accent: var(--red);">
+                    <div class="kpi-label">Persons of Interest</div>
+                    <div class="kpi-value" id="kpiPersons">--</div>
+                    <div class="kpi-sub">PERSON NODES</div>
+                </div>
+            </div>
+
             <!-- STEP 8: Graph Controls Bar -->
             <div class="graph-controls-bar" id="graphControlsBar">
                 <!-- Node Actions -->
@@ -4809,8 +4903,30 @@
                 document.getElementById('summary').innerHTML = `
                 <div class="metric"><b>${nodesCount}</b><small>ENTITIES</small></div>
                 <div class="metric"><b>${edgesCount}</b><small>LINKS</small></div>
-                <div class="metric"><b style="color:var(--teal)">LIVE</b><small>NETWORKX</small></div>
+                <div class="metric"><b style="color:var(--accent)">LIVE</b><small>NETWORKX</small></div>
             `;
+                updateKpiStrip(nodesCount, edgesCount);
+            }
+
+            function updateKpiStrip(nodesCount, edgesCount) {
+                const set = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = val;
+                };
+                set('kpiEntities', nodesCount);
+                set('kpiLinks', edgesCount);
+                let cases = '--', persons = '--';
+                try {
+                    const nodes = ((typeof _fullGraphData !== 'undefined' && _fullGraphData && _fullGraphData.nodes) || []);
+                    const isType = (n, t) => {
+                        const v = n.group || n.node_type || n.label || '';
+                        return String(v).toLowerCase() === t;
+                    };
+                    cases = nodes.filter(n => isType(n, 'case')).length;
+                    persons = nodes.filter(n => isType(n, 'person')).length;
+                } catch (e) { /* keep placeholders */ }
+                set('kpiCases', cases);
+                set('kpiPersons', persons);
             }
 
             function createVisNode(n, isSelected = false) {
