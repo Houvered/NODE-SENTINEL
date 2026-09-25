@@ -20,22 +20,22 @@
     </script>
     <style>
         :root {
-            /* CyFocus theme: near-black high-contrast base, lime action accent */
-            --bg: #04070d;
-            --surface: #0a111f;
-            --surface2: #0f192e;
-            --surface-hover: #16263f;
-            --line: #14263d;
+            /* CyFocus theme: near-black high-contrast base, ember-orange action accent */
+            --bg: #070604;
+            --surface: #0e0c09;
+            --surface2: #161210;
+            --surface-hover: #201915;
+            --line: #2a2119;
             --line-light: rgba(255, 255, 255, 0.08);
-            --text: #f2f7fd;
-            --text-secondary: #c9d9ec;
-            --muted: #8499b5;
+            --text: #f7f3ec;
+            --text-secondary: #d8cbb8;
+            --muted: #9a8b76;
             --teal: #2dd4bf;
             --teal-glow: rgba(45, 212, 191, 0.28);
-            --accent: #bef264;
-            --accent-strong: #a8e02e;
-            --accent-ink: #1a2405;
-            --accent-glow: rgba(190, 242, 100, 0.28);
+            --accent: #ff5c1a;
+            --accent-strong: #e8480c;
+            --accent-ink: #ffffff;
+            --accent-glow: rgba(255, 92, 26, 0.32);
             --amber: #fbbf24;
             --red: #f87171;
             --blue: #38bdf8;
@@ -61,16 +61,16 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: rgba(6, 14, 25, 0.6);
+            background: rgba(10, 7, 5, 0.6);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #1f3b5e;
+            background: #3a2a1c;
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #2d5585;
+            background: #54402c;
         }
 
         body {
@@ -106,7 +106,7 @@
             gap: 16px;
             padding: 0 24px;
             border-bottom: 1px solid var(--line);
-            background: linear-gradient(180deg, #0b1424 0%, #070d18 100%);
+            background: linear-gradient(180deg, #140e08 0%, #0a0705 100%);
             z-index: 10;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
@@ -233,7 +233,7 @@
         /* Sidebar Navigation */
         .sidebar {
             padding: 16px 12px;
-            background: #070d18;
+            background: #0b0806;
             border-right: 1px solid var(--line);
             display: flex;
             flex-direction: column;
@@ -277,10 +277,10 @@
         }
 
         .nav.active {
-            background: linear-gradient(90deg, rgba(190, 242, 100, 0.14) 0%, rgba(190, 242, 100, 0.03) 100%);
+            background: linear-gradient(90deg, rgba(255, 92, 26, 0.16) 0%, rgba(255, 92, 26, 0.03) 100%);
             color: #fff;
             border-left: 3px solid var(--accent);
-            box-shadow: inset 0 0 12px rgba(190, 242, 100, 0.06);
+            box-shadow: inset 0 0 12px rgba(255, 92, 26, 0.08);
         }
 
         .nav span.icon {
@@ -321,15 +321,15 @@
             gap: 10px;
             padding: 0 18px;
             border-bottom: 1px solid var(--line);
-            background: #080f1c;
+            background: #0d0a07;
             z-index: 5;
         }
 
         .dataset-select {
             padding: 7px 11px;
-            border: 1px solid #294668;
-            background: #122238;
-            color: #eaf7ff;
+            border: 1px solid #4a3220;
+            background: #1c130c;
+            color: #f7f3ec;
             border-radius: 7px;
             font-size: 12.5px;
             font-weight: 600;
@@ -351,8 +351,8 @@
         .search {
             width: 100%;
             color: var(--text);
-            background: #112035;
-            border: 1px solid #233e5e;
+            background: #17100a;
+            border: 1px solid #3a2a1c;
             border-radius: 7px;
             padding: 7px 32px 7px 12px;
             outline: none;
@@ -362,7 +362,7 @@
 
         .search:focus {
             border-color: var(--teal);
-            background: #152740;
+            background: #1e150d;
             box-shadow: 0 0 8px rgba(45, 212, 191, 0.2);
         }
 
@@ -420,9 +420,9 @@
         }
 
         .button.primary:hover {
-            background: linear-gradient(135deg, #cdf765 0%, #b5ec4a 100%);
+            background: linear-gradient(135deg, #ff7040 0%, #f04e12 100%);
             box-shadow: 0 0 14px var(--accent-glow);
-            color: #101a02;
+            color: #ffffff;
         }
 
         /* Direct Full-Height Network Canvas */
@@ -431,7 +431,7 @@
             width: 100%;
             height: 100%;
             min-height: 0;
-            background: radial-gradient(ellipse at center, #0a1526 0%, #03060c 75%);
+            background: radial-gradient(ellipse at center, #160f0a 0%, #050403 75%);
             display: block;
             position: relative;
         }
@@ -458,10 +458,10 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            background: rgba(8, 18, 32, 0.88);
+            background: rgba(14, 10, 7, 0.88);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(38, 59, 85, 0.85);
+            border: 1px solid rgba(90, 62, 40, 0.85);
             border-radius: 8px;
             padding: 6px;
             z-index: 5;
@@ -934,7 +934,7 @@
             gap: 10px;
             padding: 12px 18px;
             border-bottom: 1px solid var(--line);
-            background: #060b14;
+            background: #0a0705;
             z-index: 4;
         }
 
@@ -990,6 +990,64 @@
             .kpi-strip {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
+        }
+
+        /* Recent activity feed (ops-console right column) */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 8px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-ico {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 7px;
+            background: rgba(255, 92, 26, 0.12);
+            border: 1px solid rgba(255, 92, 26, 0.25);
+            font-size: 12px;
+        }
+
+        .activity-text {
+            color: var(--text-secondary);
+            min-width: 0;
+        }
+
+        .activity-text b {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .activity-meta {
+            font-size: 10.5px;
+            color: var(--muted);
+            margin-top: 1px;
+        }
+
+        .kpi-spark {
+            margin-top: 2px;
+            height: 26px;
         }
 
         .list {
@@ -3129,7 +3187,31 @@
                 width: 20px;
             }
 
-            .sidebar-footer {
+        .sidebar-cta {
+            margin: 2px 2px 8px;
+            justify-content: center;
+            padding: 9px 14px;
+            font-size: 13px;
+        }
+
+        .nav-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .nav-label .chev {
+            font-size: 10px;
+            color: var(--muted);
+            transition: transform 0.15s ease;
+        }
+
+        .nav-label.collapsed .chev {
+            transform: rotate(-90deg);
+        }
+
+        .sidebar-footer {
                 display: block;
                 padding: 12px 6px 6px;
             }
@@ -3788,7 +3870,11 @@
                 <button class="sidebar-close-btn" onclick="toggleMobileSidebar(false)" aria-label="Close Navigation Menu">✕</button>
             </div>
 
-            <div class="nav-label">INVESTIGATION</div>
+            <button class="button primary sidebar-cta" onclick="openIngest()" title="Start a new investigation case">
+                + New case
+            </button>
+
+            <div class="nav-label" onclick="toggleNavGroup(this)">INVESTIGATION <span class="chev">▾</span></div>
             <button id="nav-graph" class="nav active" onclick="showGraph()"
                 title="Interactive Knowledge Graph Network View">
                 <span class="icon">◉</span> Network Graph
@@ -3798,7 +3884,7 @@
                 <span class="icon">🔎</span> Universal Search
             </button>
 
-            <div class="nav-label" style="margin-top: 14px">ANALYTICS</div>
+            <div class="nav-label" style="margin-top: 14px" onclick="toggleNavGroup(this)">ANALYTICS <span class="chev">▾</span></div>
             <button id="nav-centrality" class="nav" onclick="showAnalytics()"
                 title="Betweenness Brokerage & Centrality Rankings">
                 <span class="icon">◫</span> Centrality & Brokers
@@ -3822,7 +3908,7 @@
                 <span class="icon">🕒</span> Investigation Timeline
             </button>
 
-            <div class="nav-label" style="margin-top: 14px">INTELLIGENCE</div>
+            <div class="nav-label" style="margin-top: 14px" onclick="toggleNavGroup(this)">INTELLIGENCE <span class="chev">▾</span></div>
             <button id="nav-assistant" class="nav" onclick="showAssistantPanel()"
                 title="AI Investigative Copilot & Hypothesis Assistant">
                 <span class="icon">🤖</span> AI Investigation Assistant
@@ -3832,27 +3918,32 @@
                 <span class="icon">📑</span> Investigation Report
             </button>
 
-            <div class="nav-label" style="margin-top: 14px">ADMINISTRATION</div>
+            <div class="nav-label" style="margin-top: 14px" onclick="toggleNavGroup(this)">ADMINISTRATION <span class="chev">▾</span></div>
             <button id="nav-admin" class="nav" onclick="showAdminPanel()"
                 title="Role-Based Access Control & Immutable Audit Trail">
                 <span class="icon">🛡️</span> Admin & Audit Trail
             </button>
 
-            <div class="nav-label" style="margin-top: 14px">DATA INGESTION</div>
-            <button class="nav" onclick="openIngest()" title="Ingest Police First Information Report (FIR)">
+            <div class="nav-label collapsed" style="margin-top: 14px" onclick="toggleNavGroup(this)">DATA INGESTION <span class="chev">▾</span></div>
+            <button class="nav hidden" onclick="openIngest()" title="Ingest Police First Information Report (FIR)">
                 <span class="icon">＋</span> Ingest FIR Report
             </button>
-            <button class="nav" onclick="openCdrIngestModal()" title="Ingest Telecom CDR CSV or JSON records">
+            <button class="nav hidden" onclick="openCdrIngestModal()" title="Ingest Telecom CDR CSV or JSON records">
                 <span class="icon">📥</span> Ingest CDR
             </button>
-            <button class="nav" onclick="openFinancialIngestModal()" title="Ingest Bank & Hawala Transaction Records">
+            <button class="nav hidden" onclick="openFinancialIngestModal()" title="Ingest Bank & Hawala Transaction Records">
                 <span class="icon">💳</span> Ingest Transactions
             </button>
-            <button class="nav" onclick="reloadGraph()" title="Re-query Knowledge Graph">
+            <button class="nav hidden" onclick="reloadGraph()" title="Re-query Knowledge Graph">
                 <span class="icon">↻</span> Refresh Graph
             </button>
-            <button class="nav" onclick="resetDemo()" title="Reset to baseline demonstration dataset">
+            <button class="nav hidden" onclick="resetDemo()" title="Reset to baseline demonstration dataset">
                 <span class="icon">↺</span> Reset Demo
+            </button>
+
+            <div class="nav-label" style="margin-top: 14px" onclick="toggleNavGroup(this)">SUPPORT <span class="chev">▾</span></div>
+            <button class="nav" onclick="window.open('/docs', '_blank')" title="Open interactive API documentation">
+                <span class="icon">❔</span> Help & API Docs
             </button>
 
             <div class="sidebar-footer">
@@ -3891,22 +3982,23 @@
                 <div class="kpi-card" style="--kpi-accent: var(--accent);">
                     <div class="kpi-label">Entities</div>
                     <div class="kpi-value" id="kpiEntities">--</div>
-                    <div class="kpi-sub">TRACKED NODES</div>
-                </div>
-                <div class="kpi-card" style="--kpi-accent: var(--teal);">
-                    <div class="kpi-label">Links</div>
-                    <div class="kpi-value" id="kpiLinks">--</div>
-                    <div class="kpi-sub">RELATIONSHIPS</div>
+                    <div class="kpi-sub" id="kpiEntitiesSub">TRACKED NODES</div>
                 </div>
                 <div class="kpi-card" style="--kpi-accent: var(--amber);">
                     <div class="kpi-label">Active Cases</div>
                     <div class="kpi-value" id="kpiCases">--</div>
-                    <div class="kpi-sub">CASE NODES</div>
+                    <div class="kpi-sub" id="kpiCasesSub">CASE NODES</div>
                 </div>
                 <div class="kpi-card" style="--kpi-accent: var(--red);">
-                    <div class="kpi-label">Persons of Interest</div>
-                    <div class="kpi-value" id="kpiPersons">--</div>
-                    <div class="kpi-sub">PERSON NODES</div>
+                    <div class="kpi-label">Fraud Signals</div>
+                    <div class="kpi-value" id="kpiFraud">--</div>
+                    <div class="kpi-sub" id="kpiFraudSub">EMAIL CRIT / HIGH</div>
+                </div>
+                <div class="kpi-card" style="--kpi-accent: var(--teal);">
+                    <div class="kpi-label">Financial Volume</div>
+                    <div class="kpi-value" id="kpiTxns">--</div>
+                    <div class="kpi-spark" id="kpiSpark"></div>
+                    <div class="kpi-sub" id="kpiVolumeSub">TXNS / 14 DAYS</div>
                 </div>
             </div>
 
@@ -4107,7 +4199,14 @@
                 <div id="summary" class="metric-grid" style="margin-top: 14px;">
                     <div class="metric"><b>--</b><small>ENTITIES</small></div>
                     <div class="metric"><b>--</b><small>LINKS</small></div>
-                    <div class="metric"><b style="color: var(--teal)">READY</b><small>STATUS</small></div>
+                    <div class="metric"><b style="color: var(--accent)">READY</b><small>STATUS</small></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="eyebrow">Recent Activity</div>
+                <div id="activityFeed" class="activity-feed">
+                    <div class="muted" style="font-size: 12px;">Loading live activity…</div>
                 </div>
             </section>
         </aside>
@@ -4906,6 +5005,7 @@
                 <div class="metric"><b style="color:var(--accent)">LIVE</b><small>NETWORKX</small></div>
             `;
                 updateKpiStrip(nodesCount, edgesCount);
+                refreshDashboardSummary();
             }
 
             function updateKpiStrip(nodesCount, edgesCount) {
@@ -4914,19 +5014,90 @@
                     if (el) el.textContent = val;
                 };
                 set('kpiEntities', nodesCount);
-                set('kpiLinks', edgesCount);
-                let cases = '--', persons = '--';
+                let cases = '--';
                 try {
                     const nodes = ((typeof _fullGraphData !== 'undefined' && _fullGraphData && _fullGraphData.nodes) || []);
-                    const isType = (n, t) => {
-                        const v = n.group || n.node_type || n.label || '';
-                        return String(v).toLowerCase() === t;
-                    };
+                    const isType = (n, t) => String(n.group || n.node_type || n.label || '').toLowerCase() === t;
                     cases = nodes.filter(n => isType(n, 'case')).length;
-                    persons = nodes.filter(n => isType(n, 'person')).length;
                 } catch (e) { /* keep placeholders */ }
                 set('kpiCases', cases);
-                set('kpiPersons', persons);
+            }
+
+            function sparklineSVG(series, w, h) {
+                w = w || 120; h = h || 26;
+                if (!series || !series.length) return '';
+                const vals = series.map(p => p.count);
+                const max = Math.max.apply(null, vals.concat([1]));
+                const step = vals.length > 1 ? w / (vals.length - 1) : 0;
+                const pts = vals.map((v, i) =>
+                    (i * step).toFixed(1) + ',' + (h - 2 - (v / max) * (h - 6)).toFixed(1)).join(' ');
+                return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' +
+                    '<polyline points="' + pts + '" fill="none" stroke="var(--teal)" stroke-width="1.6"/></svg>';
+            }
+
+            function timeAgo(iso) {
+                try {
+                    const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+                    if (s < 60) return 'just now';
+                    if (s < 3600) return Math.floor(s / 60) + ' mins ago';
+                    if (s < 86400) return Math.floor(s / 3600) + ' hrs ago';
+                    return Math.floor(s / 86400) + 'd ago';
+                } catch (e) { return ''; }
+            }
+
+            function activityIcon(action) {
+                const a = String(action || '').toUpperCase();
+                if (a.includes('INGEST')) return '📥';
+                if (a.includes('SEARCH')) return '🔎';
+                if (a.includes('REPORT')) return '📑';
+                if (a.includes('LOGIN')) return '👤';
+                if (a.includes('FINANCIAL')) return '💳';
+                if (a.includes('CDR')) return '📞';
+                if (a.includes('RISK')) return '⚠';
+                return '•';
+            }
+
+            async function refreshDashboardSummary() {
+                try {
+                    const r = await fetch('/api/dashboard/summary?_t=' + Date.now());
+                    if (!r.ok) return;
+                    const d = await r.json();
+                    const set = (id, val) => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = val;
+                    };
+                    set('kpiEntities', d.entities);
+                    set('kpiCases', d.cases);
+                    set('kpiFraud', d.fraud_signals);
+                    set('kpiTxns', d.financial.transactions);
+                    const vol = d.financial.volume || 0;
+                    set('kpiVolumeSub', '₹' + Number(vol).toLocaleString('en-IN', { maximumFractionDigits: 0 }) + ' VOLUME');
+                    const spark = document.getElementById('kpiSpark');
+                    if (spark) spark.innerHTML = sparklineSVG(d.financial.per_day);
+                    const feed = document.getElementById('activityFeed');
+                    if (feed) {
+                        if (!d.activity || !d.activity.length) {
+                            feed.innerHTML = '<div class="muted" style="font-size: 12px;">No recorded activity yet.</div>';
+                        } else {
+                            feed.innerHTML = d.activity.map(a =>
+                                '<div class="activity-item"><span class="activity-ico">' + activityIcon(a.action) + '</span>' +
+                                '<div class="activity-text"><b>' + (a.action || '').replace(/_/g, ' ') + '</b>' +
+                                (a.resource ? ' · ' + a.resource : '') +
+                                '<div class="activity-meta">' + (a.actor || 'anonymous') + ' · ' + timeAgo(a.timestamp) + '</div>' +
+                                '</div></div>').join('');
+                        }
+                    }
+                } catch (e) { /* dashboard widgets stay on graph values */ }
+            }
+
+            function toggleNavGroup(el) {
+                el.classList.toggle('collapsed');
+                const hide = el.classList.contains('collapsed');
+                let sib = el.nextElementSibling;
+                while (sib && !sib.classList.contains('nav-label') && !sib.classList.contains('sidebar-footer')) {
+                    if (sib.classList.contains('nav')) sib.classList.toggle('hidden', hide);
+                    sib = sib.nextElementSibling;
+                }
             }
 
             function createVisNode(n, isSelected = false) {

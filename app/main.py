@@ -16,6 +16,7 @@ from app.api.routes_financial import router as financial_router
 from app.api.routes_timeline import router as timeline_router
 from app.api.routes_risk import router as risk_router
 from app.api.routes_assistant import router as assistant_router
+from app.api.routes_dashboard import router as dashboard_router
 from app.api.routes_reports import router as reports_router
 from app.api.routes_auth import router as auth_router
 from app.api.routes_users import router as users_router
@@ -136,6 +137,7 @@ app.include_router(financial_router, prefix=settings.API_V1_STR)
 app.include_router(timeline_router, prefix=settings.API_V1_STR)
 app.include_router(risk_router, prefix=settings.API_V1_STR)
 app.include_router(assistant_router, prefix=settings.API_V1_STR)
+app.include_router(dashboard_router, prefix=settings.API_V1_STR)
 app.include_router(reports_router, prefix=settings.API_V1_STR)
 
 
