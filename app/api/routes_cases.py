@@ -25,7 +25,7 @@ from app.core.case_access import (
     require_case_manager,
     require_case_member,
 )
-from app.core.case_store import get_case_store
+from app.core.case_store import WRITE_ROLES, get_case_store
 from app.models.auth_models import Role, User
 from app.models.case_models import CaseCreate, CaseMemberAdd, CaseResponse, CaseUpdate, MemberResponse
 
@@ -87,7 +87,6 @@ def update_case(case_id: str, payload: CaseUpdate, request: Request,
                 user: User = Depends(get_current_user)):
     """Update metadata/status. Viewers are read-only."""
     if ctx["role"] != "admin":
-        from app.core.case_store import WRITE_ROLES
         if ctx["role"] not in WRITE_ROLES:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                                 detail="Access denied: case role 'viewer' is read-only")

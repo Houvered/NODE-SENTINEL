@@ -126,8 +126,11 @@ def process_unstructured(store, doc: Dict[str, Any]) -> Dict[str, Any]:
     extractor = NLPExtractor()
     store.set_doc_status(doc_id, "extracting_entities")
     n_ent = 0
+    page_entities: Dict[int, list] = {}
     for page_no, page_text in pages:
-        for ent in extractor.extract_entities(page_text):
+        page_ents = extractor.extract_entities(page_text)
+        page_entities[page_no] = page_ents
+        for ent in page_ents:
             name = ent.get("name", "")
             provider, conf = _provider_for(ent)
             ev, cs, ce = _evidence_for(page_text, name)
@@ -142,7 +145,7 @@ def process_unstructured(store, doc: Dict[str, Any]) -> Dict[str, Any]:
     store.set_doc_status(doc_id, "extracting_relationships")
     n_rel = 0
     for page_no, page_text in pages:
-        page_ents = extractor.extract_entities(page_text)
+        page_ents = page_entities[page_no]
         for rel in extractor.extract_triplets(page_text, page_ents):
             subj = str(rel.get("source", ""))
             obj = str(rel.get("target", ""))

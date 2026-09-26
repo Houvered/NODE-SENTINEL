@@ -278,16 +278,16 @@ def _import_cdr(graph, rows, mapping, imp, doc) -> Tuple[int, int]:
         raise ValueError("All CDR rows failed validation: " + "; ".join(errors[:5]))
     svc = CDRService(graph_engine=graph)
     added, _, _ = svc.ingest_records_into_graph(valid)
-    # Tag provenance + case on the created CALL edges.
+    # Tag provenance + case on the created CALL edges (id-indexed: O(E+R)).
+    by_id = {e.id: e for e in graph.get_all_edges()}
     for rec in valid:
-        eid = f"CALL_{rec.call_id}"
-        try:
-            edge = next((x for x in graph.get_all_edges() if x.id == eid), None)
-            if edge is not None:
+        edge = by_id.get(f"CALL_{rec.call_id}")
+        if edge is not None:
+            try:
                 edge.properties.update(_prov(imp, doc, rec.call_id))
                 edge.properties["case_id"] = doc["case_id"]
-        except Exception:
-            continue
+            except Exception:
+                continue
     return added, rejected
 
 
@@ -315,17 +315,21 @@ def _import_financial(graph, rows, mapping, imp, doc) -> Tuple[int, int]:
         raise ValueError("All financial rows failed validation: " + "; ".join(errors[:5]))
     svc = FinancialService(graph_engine=graph)
     added, _, _ = svc.ingest_records_into_graph(valid)
+    # Index TRANSFER edges once: O(E) instead of O(E x records).
+    by_pair: Dict[tuple, list] = {}
+    for e in graph.get_all_edges():
+        rel = e.relationship.value if hasattr(e.relationship, "value") else str(e.relationship)
+        if rel == "TRANSFERRED_MONEY":
+            by_pair.setdefault((e.source, e.target), []).append(e)
     for rec in valid:
-        for e in graph.get_all_edges():
-            rel = e.relationship.value if hasattr(e.relationship, "value") else str(e.relationship)
-            if rel != "TRANSFERRED_MONEY":
-                continue
+        cands = by_pair.get((rec.sender, rec.receiver), [])
+        for e in cands:
             props = e.properties or {}
             if props.get("transaction_id") == rec.transaction_id or (
-                    e.source == rec.sender and e.target == rec.receiver
-                    and str(props.get("amount", "")) == str(rec.amount)):
+                    str(props.get("amount", "")) == str(rec.amount)):
                 e.properties.update(_prov(imp, doc, rec.transaction_id))
                 e.properties["case_id"] = doc["case_id"]
+                break
     return added, rejected
 
 
