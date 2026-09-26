@@ -124,6 +124,7 @@ label{font-size:11px;color:var(--text2);display:block;margin:8px 0 4px}
 <div class="nav-sec">DATA INGESTION</div>
 <a class="nav-item" onclick="switchView('view-ingest')">📥 <span>FIR / CDR / Ledger Upload</span></a>
 <a class="nav-item" onclick="switchView('view-graph')">🧭 <span>Graph Tools</span></a>
+<a class="nav-item" onclick="openCases()">📁 <span>My Cases</span></a>
 <div class="disclaimer">Decision-support only. Requires Investigator Verification. Not proof of guilt.</div>
 </aside>
 <main class="main">
@@ -219,6 +220,22 @@ label{font-size:11px;color:var(--text2);display:block;margin:8px 0 4px}
 <div class="row2"><div><label>CDR file</label><input id="cdrFile" type="file" accept=".csv,.json"></div><div><label>Ledger file</label><input id="ledgerFile" type="file" accept=".csv,.json"></div></div>
 <div style="margin-top:8px;display:flex;gap:8px"><button class="btn-ghost" onclick="uploadCDR()">Upload CDR</button><button class="btn-ghost" onclick="uploadLedger()">Upload ledger</button></div><div id="upOut" class="mono" style="margin-top:8px"></div></div>
 <div class="card"><h3>Datasets</h3><button class="btn-ghost" onclick="resetDemo()">Reset demo graph</button> <span id="dsOut" class="mono"></span></div>
+</section>
+<!-- CASES -->
+<section id="view-cases" class="view">
+<div class="card"><h3>Cases — evidence workspace (login required)</h3>
+<div class="row2"><div><label>Title</label><input id="caseTitle" type="text" placeholder="Operation …"></div>
+<div><label>FIR no / station</label><input id="caseFir" type="text" placeholder="FIR-2026-…"></div></div>
+<div style="margin-top:8px;display:flex;gap:8px"><button class="btn" onclick="createCase()">Create case</button><button class="btn-ghost" onclick="loadCases()">Reload</button></div>
+<div id="caseList" style="margin-top:10px">Sign in, then reload.</div></div>
+<div class="card" id="caseDetailCard" style="display:none"><h3 id="caseDetailTitle">Case</h3>
+<div class="toolbar">
+<button onclick="caseTab('docs')">Evidence</button><button onclick="caseTab('quality')">Datasets</button>
+<button onclick="caseTab('review')">Review queue</button><button onclick="caseTab('ready')">Readiness</button>
+<button onclick="caseTab('chat')">Case chat</button><button onclick="caseTab('reports')">Reports</button>
+<button onclick="caseTab('members')">Members</button>
+</div>
+<div id="caseTabBody">Select a tab.</div></div>
 </section>
 <!-- AUDIT -->
 <section id="view-audit" class="view">
@@ -326,6 +343,41 @@ async function uploadCDR(){const f=$('cdrFile').files[0];if(!f)return;const fd=n
 async function uploadLedger(){const f=$('ledgerFile').files[0];if(!f)return;const fd=new FormData();fd.append('file',f);const r=await fetch('/api/financial/ingest',{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{},body:fd});$('upOut').textContent='Ledger: '+r.status+' '+JSON.stringify(await r.json()).slice(0,400);reloadGraph();}
 async function resetDemo(){const r=await api('/api/ingest/demo/reset',{method:'POST'});$('dsOut').textContent=r.ok?'Demo graph restored.':'Reset failed '+r.status;reloadGraph();}
 function openIngest(){switchView('view-ingest');}
+let selectedCase=null,caseReviewFilter='ai-extracted';
+function openCases(){switchView('view-cases');loadCases();}
+async function loadCases(){const r=await api('/api/cases');if(r.status===401){$('caseList').textContent='Sign in to list cases.';return;}const j=await r.json();$('caseList').innerHTML=j.length?j.map(c=>'<div class="evt"><b>'+esc(c.title)+'</b> <span class="badge">'+esc(c.status)+'</span> <span class="mono">'+esc(c.id)+' · '+esc(c.my_role||'')+'</span><br><button class="btn-ghost" style="margin-top:6px" onclick="openCase(\''+c.id+'\')">Open workspace</button></div>').join(''):'No cases yet — create one above.';}
+async function createCase(){const r=await api('/api/cases',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:$('caseTitle').value,fir_no:$('caseFir').value})});if(r.ok){$('caseTitle').value='';$('caseFir').value='';loadCases();}else{$('caseList').textContent='Create failed '+r.status;}}
+async function openCase(id){selectedCase=id;const r=await api('/api/cases/'+id);if(!r.ok)return;const c=await r.json();$('caseDetailCard').style.display='block';$('caseDetailTitle').textContent=c.title+' ('+c.status+') · '+c.id;caseTab('docs');}
+async function caseTab(t){
+ const b=$('caseTabBody');if(!selectedCase)return;
+ if(t==='docs'){const j=await (await api('/api/cases/'+selectedCase+'/documents')).json();
+  b.innerHTML='<input id="evFile" type="file"><div style="margin-top:8px"><button class="btn" onclick="uploadEvidence()">Upload evidence</button></div><div id="evOut" class="mono" style="margin-top:8px"></div>'+(j.documents||[]).map(d=>'<div class="evt"><b>'+esc(d.filename_original)+'</b> <span class="badge">'+esc(d.status)+'</span> <span class="mono">'+esc(d.ext)+' · '+(d.size_bytes||0)+'B · sha '+esc((d.sha256||'').slice(0,12))+'</span><br><span class="mono">'+esc(d.error||'')+'</span><br><button class="btn-ghost" onclick="processDoc(\''+d.id+'\')">Process</button> <button class="btn-ghost" onclick="downloadDoc(\''+d.id+'\',\''+esc(d.filename_original)+'\')">Download</button> <button class="btn-ghost" onclick="deleteDoc(\''+d.id+'\')">Delete</button></div>').join('');}
+ if(t==='quality'){const j=await (await api('/api/cases/'+selectedCase+'/imports')).json();
+  b.innerHTML=(j.imports||[]).map(i=>'<div class="evt"><b>'+esc(i.dataset_type)+'</b> <span class="badge">'+esc(i.status)+'</span> <span class="mono">'+esc(i.id)+' · rows '+i.total_rows+'</span><br><button class="btn-ghost" onclick="showMapping(\''+i.id+'\')">Mapping & quality</button></div>').join('')+'<div id="mapOut" style="margin-top:8px"></div>';}
+ if(t==='review'){const j=await (await api('/api/cases/'+selectedCase+'/extractions?review_status='+caseReviewFilter+'&limit=100')).json();
+  b.innerHTML='<div class="toolbar"><button onclick="setReviewFilter(\'ai-extracted\')">awaiting</button><button onclick="setReviewFilter(\'analyst-reviewed\')">reviewed</button><button onclick="setReviewFilter(\'verified\')">verified</button><button onclick="setReviewFilter(\'rejected\')">rejected</button><button onclick="buildGraph()">Build graph</button><button onclick="showDupes()">Duplicates</button></div><div class="mono">ai-extracted:'+(j.counts?j.counts['ai-extracted']:0)+' reviewed:'+(j.counts?j.counts['analyst-reviewed']:0)+' verified:'+(j.counts?j.counts['verified']:0)+' rejected:'+(j.counts?j.counts['rejected']:0)+'</div>'+(j.extractions||[]).map(e=>'<div class="evt"><b>'+esc(e.etype)+'</b> '+esc(e.value)+' <span class="mono">p'+e.page+' · conf '+e.confidence+' · '+esc(e.provider||'')+'</span><br><i>'+esc((e.evidence_text||'').slice(0,160))+'</i><br><button class="btn-ghost" onclick="reviewExt(\''+e.id+'\',\'analyst-reviewed\')">Approve</button> <button class="btn-ghost" onclick="reviewExt(\''+e.id+'\',\'verified\')">Verify</button> <button class="btn-ghost" onclick="reviewExt(\''+e.id+'\',\'rejected\')">Reject</button></div>').join('')+'<div id="revOut" class="mono" style="margin-top:8px"></div>';}
+ if(t==='ready'){const j=await (await api('/api/cases/'+selectedCase+'/readiness')).json();
+  b.innerHTML='<table><tr><th>data</th><th>status</th></tr>'+Object.entries(j.readiness.has).map(([k,v])=>'<tr><td>'+k+'</td><td>'+(v?'available':'MISSING')+'</td></tr>').join('')+'</table><h3 style="margin:8px 0">Gaps</h3>'+Object.entries(j.gaps||{}).map(([k,g])=>'<div class="evt"><b>'+k+'</b> missing '+esc((g.missing||[]).join(','))+(g.upload?'<br><span class="mono">upload '+esc(g.upload.file)+': '+esc((g.upload.columns||[]).join(','))+'</span>':'')+'</div>').join('');}
+ if(t==='chat'){b.innerHTML='<div class="chatlog" id="caseChatlog"><div class="msg">Ask about this case only. Missing data yields an upload checklist, never a guess.</div></div><div class="row2"><div><input id="caseChatIn" type="text" placeholder="How are A and B connected?"></div><div><button class="btn" onclick="askCase()">Ask</button></div></div>';}
+ if(t==='reports'){const j=await (await api('/api/cases/'+selectedCase+'/reports')).json();
+  b.innerHTML='<div class="row2"><div><label>Subject entity (optional)</label><input id="caseRepSub" type="text"></div><div><label>Format</label><select id="caseRepFmt"><option value="pdf">PDF</option><option value="html">HTML</option><option value="json">JSON</option></select></div></div><div style="margin-top:8px"><button class="btn" onclick="genCaseReport()">Generate report</button></div><div id="caseRepOut" class="mono" style="margin-top:8px"></div>'+(j.reports||[]).map(r=>'<div class="evt"><b>'+esc(r.subject||r.id)+'</b> <span class="mono">'+r.format+'</span><br><a style="color:var(--accent2)" href="/api/cases/'+selectedCase+'/reports/'+r.id+'/download">Download</a></div>').join('');}
+ if(t==='members'){const j=await (await api('/api/cases/'+selectedCase+'/members')).json();
+  b.innerHTML='<div class="row2"><div><input id="memUser" type="text" placeholder="username"></div><div><select id="memRole"><option value="investigator">investigator</option><option value="reviewer">reviewer</option><option value="viewer">viewer</option><option value="lead">lead</option></select></div></div><div style="margin-top:8px"><button class="btn" onclick="addMember()">Add member</button></div>'+(j||[]).map(m=>'<div class="mono">'+esc(m.username)+' · '+esc(m.case_role)+'</div>').join('');}
+}
+async function uploadEvidence(){const f=$('evFile').files[0];if(!f)return;const fd=new FormData();fd.append('file',f);const r=await fetch('/api/cases/'+selectedCase+'/documents',{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{},body:fd});const j=await r.json();$('evOut').textContent=r.status+' '+(j.status||j.detail||'');if(r.ok)caseTab('docs');}
+async function processDoc(id){const r=await api('/api/documents/'+id+'/process',{method:'POST'});const j=await r.json();alert(j.status==='succeeded'?('Extracted '+(j.entities||0)+' entities, '+(j.relationships||0)+' rels. Review queue updated.'):(j.error||'failed'));caseTab('docs');}
+async function downloadDoc(id,name){const r=await fetch('/api/documents/'+id+'/download',{headers:authToken?{'Authorization':'Bearer '+authToken}:{}});const blob=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+async function deleteDoc(id){if(!confirm('Delete this evidence and its extractions?'))return;await api('/api/documents/'+id,{method:'DELETE'});caseTab('docs');}
+async function showMapping(id){const j=await (await api('/api/cases/'+selectedCase+'/imports/'+id)).json();const q=j.quality;$('mapOut').innerHTML='<b>Required:</b> '+esc((q.required||[]).join(','))+'<br><b>Missing:</b> '+esc((q.missing||[]).join(',')||'none')+'<br><b>Invalid:</b> '+q.invalid_total+' <b>Dupes:</b> '+q.duplicate_rows+'<br><b>Preview:</b><pre class="mono">'+esc(JSON.stringify(j.preview.slice(0,3)))+'</pre>'+(q.can_continue?'<button class="btn" onclick="confirmImport(\''+id+'\')">Confirm import</button>':'<i>Map the missing columns by re-uploading with canonical headers, or pick another dataset type.</i>');}
+async function confirmImport(id){const r=await api('/api/cases/'+selectedCase+'/imports/'+id+'/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"mapping":{}}'});const j=await r.json();alert(r.ok?('Imported '+j.imported+' rows'):(j.detail||'blocked'));caseTab('quality');}
+function setReviewFilter(s){caseReviewFilter=s;caseTab('review');}
+async function reviewExt(id,s){await api('/api/cases/'+selectedCase+'/extractions/'+id+'/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_status:s})});caseTab('review');}
+async function buildGraph(){const r=await api('/api/cases/'+selectedCase+'/graph/build',{method:'POST'});const j=await r.json();$('revOut').textContent='nodes +'+j.nodes_created+' edges +'+j.edges_created+' skipped '+j.edges_skipped;}
+async function showDupes(){const j=await (await api('/api/cases/'+selectedCase+'/duplicates')).json();$('revOut').innerHTML=(j.groups||[]).map(g=>'<div class="evt"><b>'+esc(g.normalized)+'</b> x'+g.count+'<br><button class="btn-ghost" onclick="mergeGroup(\''+g.extractions[0].id+'\',\''+g.extractions.slice(1).map(x=>x.id).join(',')+'\')">Merge into first</button></div>').join('')||'No duplicates.';}
+async function mergeGroup(keep,rest){if(!confirm('Merge '+rest.split(',').length+' duplicate(s)? Originals stay in the audit trail.'))return;const r=await api('/api/cases/'+selectedCase+'/extractions/merge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keep_id:keep,merge_ids:rest.split(',')})});alert(r.ok?'Merged.':'Failed');caseTab('review');}
+async function askCase(){const q=$('caseChatIn').value.trim();if(!q)return;$('caseChatlog').innerHTML+='<div class="msg user">'+esc(q)+'</div>';const r=await api('/api/cases/'+selectedCase+'/assistant/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});const j=await r.json();$('caseChatlog').innerHTML+='<div class="msg">'+esc(j.answer||'').replace(/\n/g,'<br>')+'</div>';$('caseChatlog').scrollTop=1e6;}
+async function genCaseReport(){const r=await api('/api/cases/'+selectedCase+'/reports',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({entity_id:$('caseRepSub').value||null,output_format:$('caseRepFmt').value})});const j=await r.json();$('caseRepOut').textContent=r.ok?('Report '+j.report.id):(j.detail||'failed');if(r.ok)caseTab('reports');}
+async function addMember(){await api('/api/cases/'+selectedCase+'/members',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('memUser').value,case_role:$('memRole').value})});caseTab('members');}
 window.onload=function(){refreshMe();reloadGraph();loadDashboardSummary();refreshOpsLine();};
 </script>
 </body>
