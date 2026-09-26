@@ -201,6 +201,14 @@ class CaseStore:
     def _init_schema(self) -> None:
         with self._lock, self._connect() as con:
             con.executescript(SCHEMA)
+            # Lightweight migrations (idempotent).
+            for stmt in (
+                "ALTER TABLE extractions ADD COLUMN external_id TEXT DEFAULT ''",
+            ):
+                try:
+                    con.execute(stmt)
+                except Exception:
+                    pass
 
     # -- generic helpers -------------------------------------------------
     def _one(self, sql: str, args=()) -> Optional[Dict[str, Any]]:
@@ -352,7 +360,7 @@ class CaseStore:
         kw.setdefault("id", _nid("EXT"))
         kw.setdefault("created_at", _now())
         kw.setdefault("review_status", "ai-extracted")
-        cols = ("id,case_id,document_id,kind,etype,value,normalized,subject,predicate,"
+        cols = ("id,case_id,document_id,kind,etype,value,normalized,external_id,subject,predicate,"
                 "object,evidence_text,page,char_start,char_end,confidence,provider,"
                 "model_version,review_status,reviewer_id,reviewed_at,created_at")
         vals = [kw.get(c, 0 if c in ("page", "char_start", "char_end", "confidence") else "") for c in cols.split(",")]

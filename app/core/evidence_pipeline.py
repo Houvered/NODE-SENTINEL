@@ -134,7 +134,7 @@ def process_unstructured(store, doc: Dict[str, Any]) -> Dict[str, Any]:
             store.add_extraction(
                 case_id=case_id, document_id=doc_id, kind="entity",
                 etype=str(ent.get("label", "Person")), value=name,
-                normalized=name.strip().upper(),
+                normalized=name.strip().upper(), external_id=str(ent.get("id", "")),
                 evidence_text=ev, page=page_no, char_start=cs, char_end=ce,
                 confidence=conf, provider=provider, model_version=MODEL_VERSION)
             n_ent += 1
@@ -151,6 +151,7 @@ def process_unstructured(store, doc: Dict[str, Any]) -> Dict[str, Any]:
             store.add_extraction(
                 case_id=case_id, document_id=doc_id, kind="relationship",
                 etype=pred, value=f"{subj} {pred} {obj}", normalized="",
+                external_id="",
                 subject=subj, predicate=pred, object=obj,
                 evidence_text=ev, page=page_no, char_start=cs, char_end=ce,
                 confidence=CONF_RULE, provider=PROVIDER_RULE, model_version=MODEL_VERSION)

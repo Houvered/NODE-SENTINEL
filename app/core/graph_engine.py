@@ -26,6 +26,8 @@ class BaseGraphEngine(ABC):
     @abstractmethod
     def get_node_investigative_details(self, node_id: str) -> Dict[str, Any]: ...
     @abstractmethod
+    def remove_node(self, node_id: str) -> bool: ...
+    @abstractmethod
     def clear(self) -> None: ...
 
 
@@ -304,6 +306,18 @@ class NetworkXGraphEngine(BaseGraphEngine):
             "risk_score": risk_score,
             "risk_level": risk_level,
         }
+
+    def remove_node(self, node_id: str) -> bool:
+        """Remove a node and all incident edges. Returns False if absent."""
+        if node_id not in self._nodes:
+            return False
+        drop = [eid for eid, e in self._edges.items() if e.source == node_id or e.target == node_id]
+        for eid in drop:
+            del self._edges[eid]
+        del self._nodes[node_id]
+        if self.graph.has_node(node_id):
+            self.graph.remove_node(node_id)
+        return True
 
     def clear(self) -> None:
         self.graph.clear()
