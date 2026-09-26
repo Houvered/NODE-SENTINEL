@@ -355,6 +355,13 @@ class CaseStore:
             con.execute("DELETE FROM documents WHERE id=?", (doc_id,))
             con.commit()
 
+    def delete_extractions_for_document(self, doc_id: str) -> int:
+        """Purge a document's staged extractions (idempotent retry support)."""
+        with self._lock, self._connect() as con:
+            cur = con.execute("DELETE FROM extractions WHERE document_id=?", (doc_id,))
+            con.commit()
+            return cur.rowcount
+
     # -- extractions -----------------------------------------------------
     def add_extraction(self, **kw) -> Dict[str, Any]:
         kw.setdefault("id", _nid("EXT"))

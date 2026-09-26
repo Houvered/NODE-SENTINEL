@@ -21,7 +21,7 @@ from app.config import settings
 from app.core.audit_logger import audit_logger
 from app.core.auth_service import get_current_user
 from app.core.case_access import get_case_or_404, my_case_role, require_case_member, require_case_writer
-from app.core.case_store import get_case_store
+from app.core.case_store import WRITE_ROLES, get_case_store
 from app.core.evidence_files import (
     FileRejected,
     run_malware_scan,
@@ -59,7 +59,6 @@ def _resolve_doc(document_id: str, user: User) -> tuple[dict, str]:
 
 
 def _need_writer(role: str) -> None:
-    from app.core.case_store import WRITE_ROLES
     if role != "admin" and role not in WRITE_ROLES:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Access denied: case role 'viewer' is read-only")
@@ -87,7 +86,11 @@ async def upload_document(case_id: str, request: Request,
         return {"status": "duplicate", "duplicate_of": existing["id"], "document": existing}
     try:
         stored_path = store_original(case_id, meta["ext"], content)
-        run_malware_scan(stored_path)
+        try:
+            run_malware_scan(stored_path)
+        except FileRejected:
+            stored_path.unlink(missing_ok=True)
+            raise
     except FileRejected as e:
         raise HTTPException(status_code=422, detail=str(e))
     doc = store.add_document(

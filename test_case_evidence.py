@@ -63,6 +63,24 @@ def test_upload_validate_process(setup):
     assert c.post(f"/api/documents/{doc_id}/process", headers=admin).status_code == 409
 
 
+def test_reprocess_after_failure_is_idempotent(setup):
+    c, admin, case_id = setup
+    r = c.post(f"/api/cases/{case_id}/documents", headers=admin,
+               files={"file": ("fir2.txt", FIR_TEXT.encode(), "text/plain")})
+    doc_id = r.json()["document"]["id"]
+    c.post(f"/api/documents/{doc_id}/process", headers=admin)
+    from app.core.case_store import get_case_store
+    store = get_case_store()
+    before = len(store.list_extractions(case_id, limit=1000))
+    assert before > 0
+    # simulate a failed attempt, then retry: no duplicated queue rows
+    store.set_doc_status(doc_id, "failed", error="simulated")
+    r = c.post(f"/api/documents/{doc_id}/process", headers=admin)
+    assert r.json()["status"] == "succeeded"
+    after = len(store.list_extractions(case_id, limit=1000))
+    assert after == before, f"reprocess duplicated extractions: {before} -> {after}"
+
+
 def test_dataset_quality_gate(setup):
     c, admin, case_id = setup
     bad_csv = b"caller,receiver\n+911111111111,+912222222222\n"

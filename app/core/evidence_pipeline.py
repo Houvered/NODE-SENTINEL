@@ -170,6 +170,10 @@ def run_document_job(store, doc: Dict[str, Any]) -> Dict[str, Any]:
     try:
         store.update_job(job["id"], status="running", progress=10)
         store.set_doc_status(doc["id"], "validating")
+        # Idempotent retry: a previous failed attempt may have left partial
+        # extractions behind — purge them so reprocessing never duplicates
+        # the review queue.
+        store.delete_extractions_for_document(doc["id"])
         from app.core.evidence_files import STRUCTURED_EXTS
         if doc["ext"] in STRUCTURED_EXTS:
             from app.core import dataset_schemas
