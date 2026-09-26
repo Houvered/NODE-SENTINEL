@@ -19,6 +19,15 @@ class Settings:
     CORS_ORIGINS = [o.strip() for o in os.environ.get("CORS_ORIGINS", "*").split(",") if o.strip()]
     ENV = os.environ.get("ENV", os.environ.get("APP_ENV", "development")).lower()
 
+    # Case platform storage & policy
+    DATA_DIR = os.environ.get("DATA_DIR", str(Path(BASE_DIR) / "data"))
+    CASES_DB = os.environ.get("CASES_DB", str(Path(DATA_DIR) / "cases.db"))
+    MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "25"))
+    MAX_DATASET_ROWS = int(os.environ.get("MAX_DATASET_ROWS", "20000"))
+    ALLOW_PUBLIC_REGISTER = os.environ.get("ALLOW_PUBLIC_REGISTER", "false").lower() in ("1", "true", "yes")
+    RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "365"))
+    MALWARE_SCAN_CMD = os.environ.get("MALWARE_SCAN_CMD", "").strip()
+
     def validate(self) -> None:
         insecure_default = self.SECRET_KEY.startswith("nodesentinel_insecure")
         if insecure_default and self.ENV in ("prod", "production"):
