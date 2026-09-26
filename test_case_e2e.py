@@ -35,7 +35,8 @@ def test_full_arc(setup):
         "/api/auth/login", json={"username": "admin", "password": "AdminPassword123!"}).json()["access_token"]}
     r = c.post("/api/users", headers=admin,
                json={"username": "e2e_inv", "password": "Password123!", "role": "INVESTIGATOR"})
-    assert r.status_code in (200, 201), r.text
+    # user store is global across runs: reuse on repeat runs
+    assert r.status_code in (200, 201) or "already exists" in r.text, r.text
     inv = {"Authorization": "Bearer " + c.post(
         "/api/auth/login", json={"username": "e2e_inv", "password": "Password123!"}).json()["access_token"]}
     case_id = c.post("/api/cases", headers=inv, json={"title": "E2E Case"}).json()["id"]
