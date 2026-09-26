@@ -38,7 +38,6 @@ from app.api.routes_ingest import load_dataset_by_name
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-from app.api.routes_ingest import load_dataset_by_name
 from contextlib import asynccontextmanager
 
 _seed_summary: dict = {"mode": "not-started"}

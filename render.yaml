@@ -5,6 +5,30 @@ services:
     region: oregon
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # Evidence vault + SQLite need persistence across deploys. Without a disk,
+    # data/cases.db and uploaded evidence are lost on every restart/redeploy.
+    disk:
+      name: sentinel-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.8
+      - key: SECRET_KEY
+        sync: false # generate: python -c "import secrets; print(secrets.token_hex(32))"
+      - key: ENV
+        value: production
+      - key: DATA_DIR
+        value: /opt/render/project/src/data
+      - key: CASES_DB
+        value: /opt/render/project/src/data/cases.db
+      - key: CORS_ORIGINS
+        value: https://your-frontend.vercel.app # TODO: set to the real Vercel app URL
+      - key: MAX_UPLOAD_MB
+        value: 25
+      - key: MAX_DATASET_ROWS
+        value: 20000
+      - key: ALLOW_PUBLIC_REGISTER
+        value: false
+      - key: RETENTION_DAYS
+        value: 365

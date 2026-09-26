@@ -204,7 +204,7 @@ Run the complete automated test suite:
 ```bash
 python -m pytest -q
 ```
-**Test Results**: `145 passed, 0 failed` (run `python -m pytest -q`).
+**Test Results**: `158 passed, 0 failed` (run `python -m pytest -q`).
 
 ---
 
