@@ -33,6 +33,7 @@ def get_cdr_service() -> CDRService:
 
 
 @router.post("/ingest", response_model=CDRIngestResponse)
+@router.post("/upload", response_model=CDRIngestResponse, include_in_schema=False)
 async def ingest_cdr(
     request: Request,
     file: Optional[UploadFile] = File(None, description="CSV or JSON CDR file to upload"),

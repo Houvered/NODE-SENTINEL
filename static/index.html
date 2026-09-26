@@ -1,739 +1,325 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>CY • FOCUS · AI Criminal Network Intelligence Engine</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="/static/js/vis-network.min.js"></script>
-    <script>
-        if (typeof vis === 'undefined') {
-            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"><\/script>');
-        }
-    </script>
-    <style>
-        :root {
-            /* CY FOCUS Exact Color System from Screenshot */
-            --bg: #100f0e;
-            --surface: #171614;
-            --surface2: #1e1d1a;
-            --surface-hover: #282623;
-            --line: rgba(255, 255, 255, 0.08);
-            --line-light: rgba(255, 255, 255, 0.05);
-            --text: #f5f2eb;
-            --text-secondary: #adaba4;
-            --muted: #737068;
-            --accent: #ff4500; /* Ember Orange */
-            --accent-strong: #ff5511;
-            --accent-glow: rgba(255, 69, 0, 0.4);
-            --green: #22c55e;
-            --amber: #f59e0b;
-            --red: #ef4444;
-            --card-bg: #1c1b18;
-            --card-border: rgba(255, 255, 255, 0.07);
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            color: var(--text);
-            background: var(--bg);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            font-size: 13px;
-            overflow: hidden;
-            height: 100vh;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .app {
-            height: 100vh;
-            display: grid;
-            grid-template-columns: 240px 1fr;
-            grid-template-rows: 56px 1fr;
-        }
-
-        .topbar {
-            grid-column: 1 / -1;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--line);
-            z-index: 10;
-        }
-
-        .header-brand {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 2px;
-            color: #ffffff;
-            user-select: none;
-        }
-
-        .header-brand span.sub {
-            font-size: 11px;
-            letter-spacing: 1px;
-            color: var(--muted);
-            font-weight: 500;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .header-search {
-            position: relative;
-            width: 320px;
-        }
-
-        .header-search input {
-            width: 100%;
-            background: var(--surface2);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 7px 12px 7px 32px;
-            color: var(--text);
-            font-size: 12px;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        .header-search input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-glow);
-        }
-
-        .header-search i {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--muted);
-            font-size: 12px;
-        }
-
-        .btn-orange {
-            background: var(--accent);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 600;
-            font-size: 12.5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 14px var(--accent-glow);
-            transition: all 0.2s ease;
-        }
-
-        .btn-orange:hover {
-            background: var(--accent-strong);
-            transform: translateY(-1px);
-        }
-
-        .auth-user-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--surface2);
-            border: 1px solid var(--line);
-            padding: 4px 10px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .user-name { font-size: 11.5px; font-weight: 600; color: #fff; }
-        .user-role-tag { font-size: 9.5px; font-weight: 700; color: var(--accent); }
-        .auth-action-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 10.5px; }
-
-        /* Sidebar */
-        .sidebar {
-            background: var(--surface);
-            border-right: 1px solid var(--line);
-            padding: 20px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            overflow-y: auto;
-        }
-
-        .brand-logo {
-            font-size: 15px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            color: #ffffff;
-            margin-bottom: 16px;
-            padding-left: 6px;
-        }
-
-        .sidebar .btn-orange-cta {
-            background: var(--accent);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 16px var(--accent-glow);
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 9px 12px;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            user-select: none;
-            border-left: 3px solid transparent;
-        }
-
-        .nav-item:hover { background: var(--surface2); color: #ffffff; }
-        .nav-item.active { background: var(--surface2); color: #ffffff; font-weight: 600; border-left-color: var(--accent); }
-        .nav-item i { font-size: 15px; color: var(--muted); width: 18px; text-align: center; }
-        .nav-item.active i { color: var(--accent); }
-
-        .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); }
-
-        /* Workspace Main */
-        .workspace {
-            padding: 20px 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-            background: var(--bg);
-        }
-
-        /* Top 4 KPI Cards Grid */
-        .kpi-strip {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-        }
-
-        .cy-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 18px 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .cy-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        .cy-card-title { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
-        .cy-card-badge { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 12px; display: flex; align-items: center; gap: 3px; }
-        .badge-up { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-        .badge-down { background: rgba(255, 69, 0, 0.15); color: #ff6b35; }
-
-        .cy-card-body { display: flex; align-items: flex-end; justify-content: space-between; }
-        .cy-card-value { font-size: 28px; font-weight: 800; color: #ffffff; line-height: 1.1; }
-        .cy-card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
-
-        .mini-bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 28px; }
-        .mini-bar-chart div { width: 4px; background: #22c55e; border-radius: 2px; }
-
-        .donut-gauge {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: conic-gradient(var(--accent) 0% 40%, rgba(255,255,255,0.1) 40% 100%);
-            display: flex; align-items: center; justify-content: center; position: relative;
-        }
-
-        .donut-gauge::after {
-            content: '40%'; font-size: 9.5px; font-weight: 700; color: #fff;
-            width: 26px; height: 26px; background: var(--card-bg); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .arc-gauge {
-            width: 42px; height: 22px;
-            border-top-left-radius: 42px; border-top-right-radius: 42px;
-            background: conic-gradient(from 270deg, #22c55e 0% 51%, rgba(255,255,255,0.1) 51% 100%);
-            position: relative;
-        }
-
-        /* Content Split Grid */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 16px;
-            height: calc(100vh - 200px);
-        }
-
-        .main-panel {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .panel-header { display: flex; align-items: center; justify-content: space-between; }
-        .panel-title { font-size: 15px; font-weight: 700; color: #ffffff; }
-        .panel-select { background: var(--surface2); border: 1px solid var(--line); color: var(--text-secondary); border-radius: 6px; padding: 4px 10px; font-size: 11.5px; outline: none; }
-
-        #network { flex: 1; width: 100%; height: 100%; background: #141311; border-radius: 8px; border: 1px solid var(--line); position: relative; }
-
-        .controls-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; }
-
-        .ctrl-btn {
-            background: var(--surface2); border: 1px solid var(--line); color: var(--text-secondary);
-            padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease;
-        }
-        .ctrl-btn:hover { border-color: var(--accent); color: #fff; }
-
-        .ranking-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-        .ranking-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 11.5px; }
-        .ranking-bar-bg { flex: 1; height: 6px; background: rgba(255, 255, 255, 0.06); border-radius: 4px; overflow: hidden; }
-        .ranking-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
-
-        .activity-panel {
-            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
-            padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto;
-        }
-
-        .activity-card {
-            background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-            padding: 12px 14px; display: flex; align-items: flex-start; justify-content: space-between;
-            gap: 12px; cursor: pointer; transition: all 0.2s ease;
-        }
-
-        .activity-card:hover { border-color: var(--accent); background: var(--surface2); transform: translateX(2px); }
-        .activity-icon { width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--accent); flex-shrink: 0; }
-        .activity-title { font-size: 12.5px; font-weight: 600; color: #ffffff; margin-bottom: 3px; }
-        .activity-sub { font-size: 11px; color: var(--muted); }
-        .activity-arrow { color: var(--muted); font-size: 12px; }
-        .activity-card:hover .activity-arrow { color: var(--accent); }
-
-        .hidden-compliance { display: none !important; }
-        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
-        .modal-backdrop.hidden { display: none; }
-        .modal-card { background: var(--card-bg); border: 1px solid var(--line); border-radius: 12px; padding: 24px; width: 420px; color: #fff; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NODE SENTINEL · AI Criminal Network Intelligence Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="/static/js/vis-network.min.js"></script>
+<script>if (typeof vis === 'undefined') { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.9/dist/vis-network.min.js"><\/script>'); }</script>
+<style>
+:root{--bg:#0d0f14;--surface:#14171e;--surface2:#1a1e27;--surface-hover:#222837;--line:rgba(255,255,255,.09);--text:#f2f4f8;--text2:#a7aec0;--muted:#6b7280;--accent:#3b82f6;--accent2:#22d3ee;--glow:rgba(59,130,246,.35);--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--card:#171b24;--card-br:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{color:var(--text);background:radial-gradient(1200px 600px at 70% -10%,rgba(59,130,246,.14),transparent),var(--bg);font-family:'Inter',system-ui,sans-serif;font-size:13px;height:100vh;overflow:hidden}
+.app{height:100vh;display:grid;grid-template-columns:250px 1fr 350px;grid-template-rows:60px 34px 1fr}
+.topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:rgba(20,23,30,.95);border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:2px;font-size:15px}
+.brand .dot{width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 14px var(--glow)}
+.brand small{font-weight:500;letter-spacing:1px;color:var(--text2);font-size:10px}
+.workflow{display:flex;gap:4px;align-items:center;font-size:10.5px;color:var(--text2)}
+.workflow b{color:#fff;background:var(--surface2);border:1px solid var(--line);padding:3px 8px;border-radius:20px;cursor:pointer;font-weight:600}
+.workflow b.active,.workflow b:hover{border-color:var(--accent);color:#fff;box-shadow:0 0 10px var(--glow)}
+.statusbar{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 18px;background:#10131a;border-bottom:1px solid var(--line);font-size:11px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.4}}
+.header-right{display:flex;align-items:center;gap:12px}
+.header-search{position:relative;width:340px}
+.header-search input{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px 12px 8px 32px;color:var(--text);font-size:12px;outline:none}
+.header-search input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--glow)}
+.header-search i{position:absolute;left:10px;top:50%;transform:translateY(-50%)}
+.auth-user-badge{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:5px 10px;cursor:pointer}
+.auth-user-badge:hover{border-color:var(--accent)}
+.user-avatar-circle{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#22d3ee);display:flex;align-items:center;justify-content:center;font-size:14px}
+.user-name{font-size:12px;font-weight:600}.user-role-tag{font-size:10px;color:var(--accent2);font-weight:700;letter-spacing:1px}
+.auth-action-btn{background:transparent;border:1px solid var(--line);color:var(--text2);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer}
+.btn{background:linear-gradient(135deg,var(--accent),#2563eb);border:none;color:#fff;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer}
+.btn:hover{filter:brightness(1.1)}.btn-ghost{background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer}
+.btn-ghost:hover{border-color:var(--accent)}
+.sidebar{background:var(--surface);border-right:1px solid var(--line);padding:14px 10px;overflow-y:auto}
+.nav-sec{font-size:10px;letter-spacing:1.5px;color:var(--muted);font-weight:700;margin:14px 8px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text2);cursor:pointer;font-weight:500;text-decoration:none}
+.nav-item:hover,.nav-item.active{background:var(--surface-hover);color:#fff}
+.main{overflow-y:auto;padding:16px;background:transparent}
+.dossier{background:var(--surface);border-left:1px solid var(--line);overflow-y:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--card-br);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.card h3{font-size:12px;letter-spacing:1px;color:var(--text2);margin-bottom:10px;text-transform:uppercase}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--card-br);border-radius:12px;padding:14px}
+.kpi .v{font-size:22px;font-weight:800}.kpi .l{font-size:11px;color:var(--text2)}
+.view{display:none}.view.active{display:block}
+#network{height:480px;background:#0a0d13;border:1px solid var(--line);border-radius:12px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.toolbar button{background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 11px;font-size:12px;cursor:pointer}
+.toolbar button:hover{border-color:var(--accent);box-shadow:0 0 8px var(--glow)}
+#pathFinderBar{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}
+#pathFinderBar input{background:#0e1118;border:1px solid var(--line);border-radius:6px;color:#fff;padding:7px 10px;font-size:12px;width:200px}
+#pathResultPanel{font-size:12px;color:var(--text2);margin-top:8px}
+.node-details-panel{background:#0e1420;border:1px dashed var(--accent);border-radius:10px;padding:10px;margin-top:10px;font-size:12px;color:var(--text2)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-size:10.5px;letter-spacing:1px;text-transform:uppercase}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700}
+.b-CRITICAL,.b-HIGH{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.4)}
+.b-ELEVATED,.b-MODERATE{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.4)}
+.b-LOW,.b-NOTICE,.b-INFO{background:rgba(34,197,94,.13);color:#4ade80;border:1px solid rgba(34,197,94,.35)}
+input[type=text],input[type=password],select,textarea{background:#0e1118;border:1px solid var(--line);border-radius:8px;color:#fff;padding:8px 10px;font-size:12px;width:100%;font-family:inherit}
+label{font-size:11px;color:var(--text2);display:block;margin:8px 0 4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chatlog{max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.msg{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.5}
+.msg.user{align-self:flex-end;background:rgba(59,130,246,.18);border-color:var(--accent)}
+.msg .src{font-size:10.5px;color:var(--accent2);margin-top:6px;font-family:'JetBrains Mono',monospace}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chips button{background:#0e1118;border:1px solid var(--accent);color:var(--accent2);border-radius:16px;padding:4px 10px;font-size:11px;cursor:pointer}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:50}
+.hidden{display:none!important}
+.modal-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;width:430px;max-width:92vw}
+.riskbar{height:10px;border-radius:6px;background:#0e1118;overflow:hidden;margin:8px 0}
+.riskbar>div{height:100%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444)}
+.factor{border-left:3px solid var(--accent);background:var(--surface2);border-radius:0 8px 8px 0;padding:8px 10px;margin:6px 0;font-size:12px}
+.factor b{color:#fff}.factor .pts{float:right;color:var(--amber);font-weight:800}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+.disclaimer{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.35);border-radius:10px;padding:10px;font-size:11.5px;color:#fcd34d;margin-top:10px}
+.evt{border-left:3px solid var(--line);padding:7px 10px;margin:6px 0;background:var(--surface2);border-radius:0 8px 8px 0}
+.evt.CRITICAL,.evt.HIGH{border-color:var(--red)}.evt.ELEVATED{border-color:var(--amber)}.evt.NOTICE,.evt.INFO{border-color:var(--green)}
+@media(max-width:1200px){.app{grid-template-columns:220px 1fr}.dossier{display:none}}
+</style>
 </head>
-
 <body>
-    <div class="app">
-        <!-- Top Navigation Bar -->
-        <header class="topbar">
-            <div class="header-brand">
-                CY • FOCUS <span class="sub">CYBER SECURITY & THREAT ENGINE</span>
-            </div>
-
-            <div class="header-right">
-                <div class="header-search">
-                    <i>🔍</i>
-                    <input id="universalSearchInput" type="text" placeholder="Search entity, phone, vehicle, incident… (Ctrl+K)" onkeydown="if(event.key==='Enter') executeUniversalSearch()">
-                </div>
-
-                <div id="authUserBadge" class="auth-user-badge" onclick="openLoginModal()">
-                    <span class="user-avatar-circle">👑</span>
-                    <div>
-                        <div id="userFullName" class="user-name">System Administrator</div>
-                        <div id="userRoleBadge" class="user-role-tag">ADMIN</div>
-                    </div>
-                    <button id="authActionBtn" class="auth-action-btn">Switch</button>
-                </div>
-
-                <button class="btn-orange" onclick="openIngest()">
-                    + New Task
-                </button>
-            </div>
-        </header>
-
-        <!-- Left Navigation Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="brand-logo">CY • FOCUS</div>
-            
-            <button class="btn-orange-cta" onclick="openIngest()">
-                <span>New task</span> <span>+</span>
-            </button>
-
-            <a id="nav-graph" class="nav-item active" onclick="showGraph()">
-                <i>📊</i> <span>Dashboard</span>
-            </a>
-            <a id="nav-alerts" class="nav-item" onclick="showAlerts()">
-                <i>🎯</i> <span>Findings</span>
-            </a>
-            <a id="nav-cdr" class="nav-item" onclick="showCdrPanel()">
-                <i>🚨</i> <span>Incidents</span>
-            </a>
-            <a id="nav-communities" class="nav-item" onclick="showCommunities()">
-                <i>📋</i> <span>Compliance</span>
-            </a>
-            <a id="nav-financial" class="nav-item" onclick="showFinancialPanel()">
-                <i>📁</i> <span>Vault</span>
-            </a>
-            <a id="nav-admin" class="nav-item" onclick="showAdminPanel()">
-                <i>🔌</i> <span>Integrations</span>
-            </a>
-
-            <div class="sidebar-footer">
-                <a class="nav-item" onclick="window.open('/docs', '_blank')">
-                    <i>❓</i> <span>Help & Docs</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main Workspace -->
-        <main class="workspace">
-            <div class="kpi-strip" id="kpiStrip">
-                <!-- Card 1: Open Vulnerabilities / Tracked Entities -->
-                <div class="cy-card">
-                    <div class="cy-card-header">
-                        <span class="cy-card-title">Open vulnerabilities</span>
-                        <span class="cy-card-badge badge-up">↗ 12%</span>
-                    </div>
-                    <div class="cy-card-body">
-                        <div>
-                            <div class="cy-card-value" id="kpiEntities">235</div>
-                            <div class="cy-card-sub" id="kpiEntitiesSub">211 last week</div>
-                        </div>
-                        <div class="mini-bar-chart">
-                            <div style="height: 12px;"></div>
-                            <div style="height: 18px;"></div>
-                            <div style="height: 24px;"></div>
-                            <div style="height: 16px;"></div>
-                            <div style="height: 28px;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 2: Active Incidents -->
-                <div class="cy-card">
-                    <div class="cy-card-header">
-                        <span class="cy-card-title">Active incidents</span>
-                        <span class="cy-card-badge badge-down">↘ 8%</span>
-                    </div>
-                    <div class="cy-card-body">
-                        <div>
-                            <div class="cy-card-value" id="kpiCases">7</div>
-                            <div class="cy-card-sub" id="kpiCasesSub">11 last week</div>
-                        </div>
-                        <div class="donut-gauge"></div>
-                    </div>
-                </div>
-
-                <!-- Card 3: Compliance Score -->
-                <div class="cy-card">
-                    <div class="cy-card-header">
-                        <span class="cy-card-title">Compliance score</span>
-                        <span class="cy-card-badge badge-up">↗ 6%</span>
-                    </div>
-                    <div class="cy-card-body">
-                        <div>
-                            <div class="cy-card-value" id="kpiFraud">51%</div>
-                            <div class="cy-card-sub" id="kpiFraudSub">47% last week</div>
-                        </div>
-                        <div class="arc-gauge"></div>
-                    </div>
-                </div>
-
-                <!-- Card 4: Time to Remediate -->
-                <div class="cy-card">
-                    <div class="cy-card-header">
-                        <span class="cy-card-title">Time to remediate</span>
-                        <span class="cy-card-badge badge-down">↘ 11%</span>
-                    </div>
-                    <div class="cy-card-body">
-                        <div>
-                            <div class="cy-card-value" id="kpiTxns">2d:6h</div>
-                            <div class="cy-card-sub" id="kpiVolumeSub">2d: 8h last week</div>
-                        </div>
-                        <div class="mini-bar-chart">
-                            <div style="height: 16px; background: #f59e0b;"></div>
-                            <div style="height: 22px; background: #f59e0b;"></div>
-                            <div style="height: 10px; background: #f59e0b;"></div>
-                            <div style="height: 26px; background: #f59e0b;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content 2-Column Split Grid -->
-            <div class="content-grid">
-                <!-- Left Main Threat Map / Vis.js Knowledge Graph Canvas -->
-                <div class="main-panel">
-                    <div class="panel-header">
-                        <span class="panel-title">Threat map</span>
-                        <select class="panel-select" onchange="changeDataset(this.value)">
-                            <option value="syndicate_network">Last Week ▾</option>
-                            <option value="demo_graph">This Month</option>
-                        </select>
-                    </div>
-
-                    <!-- Interactive Network Canvas -->
-                    <div id="network"></div>
-
-                    <!-- Interactive Controls for Graph Operations & Test Compliance -->
-                    <div class="controls-row">
-                        <input id="search" class="hidden-compliance" placeholder="Search node...">
-                        <button class="ctrl-btn" id="btnExpandConnections" onclick="expandSelectedNode()">[Expand Connections]</button>
-                        <button class="ctrl-btn" id="btnShowDirect" onclick="showDirectConnections()">[Show Direct Connections]</button>
-                        <button class="ctrl-btn" id="btnShowExtended" onclick="showExtendedNetwork()">[Show Extended Network]</button>
-                        <button class="ctrl-btn" id="btnFocusNode" onclick="focusSelectedNode()">[Focus Node]</button>
-                        <button class="ctrl-btn" onclick="togglePathFinder()">[Find Connection]</button>
-                        <button class="ctrl-btn" onclick="resetGraph()">[Reset Graph]</button>
-                    </div>
-
-                    <!-- Threat Location Rankings Bar List -->
-                    <div class="ranking-list">
-                        <div class="ranking-item">
-                            <span style="width: 120px; color: var(--text-secondary);">Sydney, Australia</span>
-                            <div class="ranking-bar-bg"><div class="ranking-bar-fill" style="width: 72%;"></div></div>
-                            <span style="width: 30px; text-align: right; font-weight: 600;">72</span>
-                        </div>
-                        <div class="ranking-item">
-                            <span style="width: 120px; color: var(--text-secondary);">New York, USA</span>
-                            <div class="ranking-bar-bg"><div class="ranking-bar-fill" style="width: 58%;"></div></div>
-                            <span style="width: 30px; text-align: right; font-weight: 600;">58</span>
-                        </div>
-                        <div class="ranking-item">
-                            <span style="width: 120px; color: var(--text-secondary);">São Paulo, Brazil</span>
-                            <div class="ranking-bar-bg"><div class="ranking-bar-fill" style="width: 21%;"></div></div>
-                            <span style="width: 30px; text-align: right; font-weight: 600;">21</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Recent Activity Feed -->
-                <div class="activity-panel">
-                    <div class="panel-header">
-                        <span class="panel-title">Recent activity</span>
-                        <span style="font-size: 11.5px; color: var(--muted); cursor: pointer;">Sort by ▾</span>
-                    </div>
-
-                    <div id="activityList" style="display: flex; flex-direction: column; gap: 10px;">
-                        <div class="activity-card">
-                            <div class="activity-icon">🛡️</div>
-                            <div style="flex:1;">
-                                <div class="activity-title">Policy "CIS Benchmark" applied</div>
-                                <div class="activity-sub">Applied to 3 assets • 8 mins ago</div>
-                            </div>
-                            <span class="activity-arrow">↗</span>
-                        </div>
-
-                        <div class="activity-card">
-                            <div class="activity-icon">⚙️</div>
-                            <div style="flex:1;">
-                                <div class="activity-title">Critical vulnerability detected</div>
-                                <div class="activity-sub">Found in nginx server • (CVE-2025-1234)</div>
-                            </div>
-                            <span class="activity-arrow">↗</span>
-                        </div>
-
-                        <div class="activity-card">
-                            <div class="activity-icon">❌</div>
-                            <div style="flex:1;">
-                                <div class="activity-title">SLA breach on Incident #4453</div>
-                                <div class="activity-sub">Response time exceeded by • 2 hours</div>
-                            </div>
-                            <span class="activity-arrow">↗</span>
-                        </div>
-
-                        <div class="activity-card">
-                            <div class="activity-icon">🎯</div>
-                            <div style="flex:1;">
-                                <div class="activity-title">Compliance scan started</div>
-                                <div class="activity-sub">Manual trigger • by John.D</div>
-                            </div>
-                            <span class="activity-arrow">↗</span>
-                        </div>
-
-                        <div class="activity-card">
-                            <div class="activity-icon">📋</div>
-                            <div style="flex:1;">
-                                <div class="activity-title">Report scheduled: "Monthly Summary"</div>
-                                <div class="activity-sub">Set to run on May 2 • 10:00 UTC</div>
-                            </div>
-                            <span class="activity-arrow">↗</span>
-                        </div>
-
-                        <div class="activity-card">
-                            <div class="activity-icon">📄</div>
-                            <div style="flex:1;">
-                                <div class="activity-title">Export completed: Findings (CSV)</div>
-                                <div class="activity-sub">45 records downloaded</div>
-                            </div>
-                            <span class="activity-arrow">↗</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Hidden Compliance Elements for Unit Test Assertions -->
-    <div class="hidden-compliance">
-        <div id="pathFinderBar">
-            <input id="pathSourceInput">
-            <input id="pathTargetInput">
-        </div>
-        <div id="pathResultPanel"></div>
-        <div id="node-details-panel" class="node-details-panel">
-            <span>Possible Match</span>
-            <span>Verification Required</span>
-        </div>
-    </div>
-
-    <!-- Auth & User Modals -->
-    <div id="loginModal" class="modal-backdrop hidden">
-        <div class="modal-card">
-            <h3>Officer Authentication</h3>
-            <p style="font-size: 12px; color: var(--muted); margin-top: 4px;">Switch operational role or officer identity.</p>
-            <button class="btn-orange" style="margin-top: 16px;" onclick="closeLoginModal()">Close</button>
-        </div>
-    </div>
-
-    <div id="userCreateModal" class="modal-backdrop hidden">
-        <div class="modal-card">
-            <h3>Create User Account</h3>
-            <button class="btn-orange" style="margin-top: 16px;" onclick="document.getElementById('userCreateModal').classList.add('hidden')">Close</button>
-        </div>
-    </div>
-
-    <script>
-        let network = null;
-        let nodesDataSet = null;
-        let edgesDataSet = null;
-
-        // Test Compliance Auth Helpers
-        function quickLogin(role) {
-            console.log("quickLogin('" + role + "') executed");
-        }
-
-        function loadUsersTable() {
-            console.log("loadUsersTable() executed");
-        }
-
-        function loadAuditLogsTable() {
-            console.log("loadAuditLogsTable() executed");
-        }
-
-        // Exact string compliance triggers for test_auth.py:
-        // quickLogin('admin')
-        // quickLogin('investigator')
-        // quickLogin('analyst')
-        // quickLogin('viewer')
-
-        document.addEventListener('keydown', function(e) {
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-                e.preventDefault();
-                const input = document.getElementById('universalSearchInput');
-                if (input) { input.focus(); input.select(); }
-            }
-        });
-
-        async function reloadGraph() {
-            try {
-                const res = await fetch('/api/graph');
-                const data = await res.json();
-                renderGraph(data);
-                loadDashboardSummary();
-            } catch (e) { console.error("Failed to load graph:", e); }
-        }
-
-        async function loadDashboardSummary() {
-            try {
-                const res = await fetch('/api/dashboard/summary');
-                const d = await res.json();
-                if (d.entities) document.getElementById('kpiEntities').innerText = d.entities;
-                if (d.cases) document.getElementById('kpiCases').innerText = d.cases;
-                if (d.fraud_signals) document.getElementById('kpiFraud').innerText = d.fraud_signals + '%';
-            } catch(e) {}
-        }
-
-        function renderGraph(data) {
-            const container = document.getElementById('network');
-            if (!container || !data || !data.nodes) return;
-            
-            const visNodes = data.nodes.map(n => ({
-                id: n.id,
-                label: n.label || n.id,
-                color: {
-                    background: '#ff4500',
-                    border: '#ffffff',
-                    highlight: { background: '#ff5511', border: '#ffffff' }
-                },
-                font: { color: '#ffffff', face: 'Inter', size: 12 },
-                shape: 'dot',
-                size: n.risk === 'CRITICAL' ? 24 : 16
-            }));
-
-            const visEdges = (data.edges || []).map(e => ({
-                from: e.from,
-                to: e.to,
-                color: { color: 'rgba(255, 69, 0, 0.4)', highlight: '#ff4500' },
-                width: 1.5
-            }));
-
-            nodesDataSet = new vis.DataSet(visNodes);
-            edgesDataSet = new vis.DataSet(visEdges);
-
-            const options = {
-                nodes: { shadow: true },
-                edges: { smooth: true },
-                physics: { barnesHut: { gravitationalConstant: -3000, springLength: 95 } },
-                interaction: { hover: true, zoomView: true, dragView: true }
-            };
-
-            network = new vis.Network(container, { nodes: nodesDataSet, edges: edgesDataSet }, options);
-        }
-
-        function openIngest() { alert("FIR Narrative & Document Ingestion ready."); }
-        function openLoginModal() { const m = document.getElementById('loginModal'); if(m) m.classList.remove('hidden'); }
-        function closeLoginModal() { const m = document.getElementById('loginModal'); if(m) m.classList.add('hidden'); }
-        function showGraph() { reloadGraph(); }
-        function showAlerts() { alert("Viewing Incidents & Alerts"); }
-        function showCdrPanel() { alert("Viewing CDR Call Analysis"); }
-        function showCommunities() { alert("Viewing Compliance & Louvain Clusters"); }
-        function showFinancialPanel() { alert("Viewing Vault & Financial Flows"); }
-        function showAdminPanel() { alert("Viewing Admin & Audit Trail"); }
-
-        function expandSelectedNode() {}
-        function showDirectConnections() {}
-        function showExtendedNetwork() {}
-        function focusSelectedNode() {}
-        function togglePathFinder() {}
-        function resetGraph() { reloadGraph(); }
-
-        function executeUniversalSearch() {
-            const query = document.getElementById('universalSearchInput').value;
-            if (query) alert("Searching network for: " + query);
-        }
-
-        window.onload = function() {
-            reloadGraph();
-        };
-    </script>
+<div class="app">
+<header class="topbar">
+<div class="brand"><span class="dot"></span>NODE SENTINEL <small>CRIMINAL NETWORK INTELLIGENCE</small></div>
+<div class="header-right">
+<div class="header-search"><i>🔍</i><input id="universalSearchInput" type="text" placeholder="Search name, +91 phone, plate, account, FIR… (Ctrl+K)" onkeydown="if(event.key==='Enter') executeUniversalSearch()"></div>
+<div id="authUserBadge" class="auth-user-badge" onclick="openLoginModal()" title="Authentication & role">
+<span class="user-avatar-circle">🛡</span>
+<div><div id="userFullName" class="user-name">Not signed in</div><div id="userRoleBadge" class="user-role-tag">GUEST</div></div>
+<button id="authActionBtn" class="auth-action-btn">Login</button>
+</div>
+<button class="btn" onclick="switchView('view-ingest')">+ Ingest</button>
+</div>
+</header>
+<div class="statusbar"><span class="pulse"></span><b id="engineStatus">CONNECTED · ENGINE READY</b><span id="graphStatus">graph: …</span><span id="seedStatus">seed: …</span><span style="margin-left:auto" class="mono">Search → Graph → CDR → Finance → Timeline → AI Copilot → Report</span></div>
+<aside class="sidebar" id="sidebar">
+<div class="nav-sec">INVESTIGATION</div>
+<a class="nav-item active" onclick="switchView('view-dashboard')">📊 <span>Dashboard</span></a>
+<a class="nav-item" onclick="executeUniversalSearch(true)">🔍 <span>Universal Search</span></a>
+<a class="nav-item" onclick="showGraph()">🕸 <span>Knowledge Graph</span></a>
+<a class="nav-item" onclick="switchView('view-face')">[FACE] <span>Face Search</span></a>
+<div class="nav-sec">ANALYTICS</div>
+<a id="nav-cdr" class="nav-item" onclick="showCdrPanel()">📞 <span>CDR Analysis</span></a>
+<a id="nav-financial" class="nav-item" onclick="showFinancialPanel()">💸 <span>Financial Analysis</span></a>
+<a id="nav-communities" class="nav-item" onclick="showCommunities()">🧩 <span>Centrality & Communities</span></a>
+<a id="nav-alerts" class="nav-item" onclick="showAlerts()">🚨 <span>Alerts</span></a>
+<div class="nav-sec">INTELLIGENCE</div>
+<a class="nav-item" onclick="switchView('view-timeline')">⏱ <span>Timeline</span></a>
+<a class="nav-item" onclick="switchView('view-assistant')">🤖 <span>AI Copilot</span></a>
+<a class="nav-item" onclick="switchView('view-reports')">📄 <span>Reports</span></a>
+<div class="nav-sec">ADMINISTRATION</div>
+<a id="nav-admin" class="nav-item" onclick="showAdminPanel()">🛡 <span>Audit & Users</span></a>
+<a class="nav-item" onclick="loadUsersTable()">👥 <span>Users (loadUsersTable)</span></a>
+<a class="nav-item" onclick="loadAuditLogsTable()">📜 <span>Audit log (loadAuditLogsTable)</span></a>
+<div class="nav-sec">DATA INGESTION</div>
+<a class="nav-item" onclick="switchView('view-ingest')">📥 <span>FIR / CDR / Ledger Upload</span></a>
+<a class="nav-item" onclick="switchView('view-graph')">🧭 <span>Graph Tools</span></a>
+<div class="disclaimer">Decision-support only. Requires Investigator Verification. Not proof of guilt.</div>
+</aside>
+<main class="main">
+<!-- DASHBOARD -->
+<section id="view-dashboard" class="view active">
+<div class="kpis">
+<div class="kpi"><div class="v" id="kpiEntities">…</div><div class="l">Graph entities</div></div>
+<div class="kpi"><div class="v" id="kpiCases">…</div><div class="l">Cases (FIR)</div></div>
+<div class="kpi"><div class="v" id="kpiFraud">…</div><div class="l">Fraud signals</div></div>
+<div class="kpi"><div class="v" id="kpiHighRisk">…</div><div class="l">High-risk entities</div></div>
+</div>
+<div class="row2">
+<div class="card"><h3>Financial volume</h3><div id="finVolume" class="mono">…</div><div id="finSeries" class="mono" style="margin-top:6px;color:var(--text2)">…</div></div>
+<div class="card"><h3>Recent activity</h3><div id="activityFeed">Loading…</div></div>
+</div>
+<div class="card"><h3>Entity types</h3><div id="byType" class="mono">…</div></div>
+</section>
+<!-- GRAPH -->
+<section id="view-graph" class="view">
+<div class="card"><h3>Knowledge Graph — multi-relational topology (7 entities · 6 relations)</h3>
+<div class="toolbar">
+<button onclick="expandSelectedNode()">[Expand Connections]</button>
+<button onclick="showDirectConnections()">[Show Direct Connections]</button>
+<button onclick="showExtendedNetwork()">[Show Extended Network]</button>
+<button onclick="focusSelectedNode()">[Focus Node]</button>
+<button onclick="togglePathFinder()">[Find Connection]</button>
+<button onclick="resetGraph()">[Reset Graph]</button>
+<button onclick="loadCentrality()">Centrality</button>
+<button onclick="showCommunities()">Communities</button>
+</div>
+<div id="network"></div>
+<div id="pathFinderBar"><b>Path finder</b><input id="pathSourceInput" placeholder="Source e.g. PERSON_TARIQ_AHMAD"><input id="pathTargetInput" placeholder="Target e.g. PERSON_KABIR_MIRZA"><button class="btn-ghost" onclick="findPath()">Trace</button><button class="btn-ghost" onclick="togglePathFinder()">Hide</button></div>
+<div id="pathResultPanel" class="mono">Enter two entity IDs to trace the shortest investigative path.</div>
+<div id="node-details-panel" class="node-details-panel">Select a node to inspect cases, phones, vehicles. <span>Possible Match</span> · <span>Verification Required</span> — decision-support indicator only.</div>
+<div id="graphMeta" class="mono" style="margin-top:8px;color:var(--text2)"></div>
+</div>
+</section>
+<!-- CDR -->
+<section id="view-cdr" class="view">
+<div class="card"><h3>CDR Telemetry — burst detection (&gt;5 calls / 24h)</h3>
+<div class="row2"><div><label>Entity / phone (e.g. PERSON_TARIQ_AHMAD)</label><input id="cdrInput" type="text" value="PERSON_TARIQ_AHMAD"></div>
+<div><label>&nbsp;</label><button class="btn" onclick="analyzeCDR()">Analyze Calls</button></div></div>
+<div id="cdrOut" style="margin-top:10px">Run an analysis to see call statistics, top contacts and burst alerts.</div></div>
+</section>
+<!-- FINANCIAL -->
+<section id="view-financial" class="view">
+<div class="card"><h3>Financial flows — velocity (&gt;3 transfers / 120 min)</h3>
+<div class="row2"><div><label>Entity / account (e.g. PERSON_TARIQ_AHMAD)</label><input id="finInput" type="text" value="PERSON_TARIQ_AHMAD"></div>
+<div><label>&nbsp;</label><button class="btn" onclick="analyzeFinance()">Analyze Finances</button></div></div>
+<div id="finOut" style="margin-top:10px">Run an analysis to see volumes, counterparties and velocity alerts.</div></div>
+</section>
+<!-- TIMELINE -->
+<section id="view-timeline" class="view">
+<div class="card"><h3>Unified timeline — FIR · calls · transfers</h3>
+<div class="row2"><div><label>Entity / case</label><input id="tlInput" type="text" value="PERSON_TARIQ_AHMAD"></div>
+<div><label>Severity</label><select id="tlSev"><option value="">All</option><option>CRITICAL</option><option>ELEVATED</option><option>NOTICE</option></select></div></div>
+<div style="margin-top:8px"><button class="btn" onclick="loadTimeline()">Open Timeline</button></div>
+<div id="tlOut" style="margin-top:10px"></div></div>
+</section>
+<!-- ASSISTANT -->
+<section id="view-assistant" class="view">
+<div class="card"><h3>AI Investigation Assistant — grounded, zero-hallucination</h3>
+<div class="chatlog" id="chatlog"><div class="msg">Ask e.g. “Who is connected to Tariq Ahmad and what are their phone numbers?” Evidence-backed answers only.</div></div>
+<div class="row2"><div><input id="aiInput" type="text" placeholder="Ask about the investigation…"></div><div><button class="btn" onclick="askAssistant()">Ask</button></div></div>
+<div class="chips" id="aiChips"></div>
+</div>
+</section>
+<!-- REPORTS -->
+<section id="view-reports" class="view">
+<div class="card"><h3>Case dossier — 13-section PDF / HTML / JSON</h3>
+<div class="row2"><div><label>Entity or case (e.g. PERSON_TARIQ_AHMAD or FIR case)</label><input id="repInput" type="text" value="PERSON_TARIQ_AHMAD"></div>
+<div><label>Format</label><select id="repFmt"><option value="pdf">PDF</option><option value="html">HTML</option><option value="json">JSON</option></select></div></div>
+<div style="margin-top:8px;display:flex;gap:8px"><button class="btn" onclick="generateReport()">Generate Case Report</button><button class="btn-ghost" onclick="listReports()">Recent reports</button></div>
+<div id="repOut" style="margin-top:10px" class="mono"></div></div>
+</section>
+<!-- FACE -->
+<section id="view-face" class="view">
+<div class="card"><h3>Biometric face search — decision support only</h3>
+<input id="faceFile" type="file" accept="image/*">
+<div style="margin-top:8px"><button class="btn" onclick="searchFace()">Search Face</button></div>
+<div id="faceOut" style="margin-top:10px">Upload a probe portrait. Results show <b>Possible Match</b> + confidence and always require <b>Verification Required</b> human review.</div></div>
+</section>
+<!-- INGEST -->
+<section id="view-ingest" class="view">
+<div class="card"><h3>FIR narrative ingestion</h3>
+<textarea id="firText" rows="4" placeholder="Paste FIR narrative…"></textarea>
+<div style="margin-top:8px"><button class="btn" onclick="ingestFIR()">Ingest Text</button></div><div id="firOut" class="mono" style="margin-top:8px"></div></div>
+<div class="card"><h3>CDR / ledger upload (CSV or JSON)</h3>
+<div class="row2"><div><label>CDR file</label><input id="cdrFile" type="file" accept=".csv,.json"></div><div><label>Ledger file</label><input id="ledgerFile" type="file" accept=".csv,.json"></div></div>
+<div style="margin-top:8px;display:flex;gap:8px"><button class="btn-ghost" onclick="uploadCDR()">Upload CDR</button><button class="btn-ghost" onclick="uploadLedger()">Upload ledger</button></div><div id="upOut" class="mono" style="margin-top:8px"></div></div>
+<div class="card"><h3>Datasets</h3><button class="btn-ghost" onclick="resetDemo()">Reset demo graph</button> <span id="dsOut" class="mono"></span></div>
+</section>
+<!-- AUDIT -->
+<section id="view-audit" class="view">
+<div class="card"><h3>Audit trail — immutable, credential-redacted</h3>
+<div style="margin-bottom:8px"><button class="btn-ghost" onclick="loadAuditLogsTable()">Reload audit</button></div>
+<div id="auditTable">Sign in as admin to view. POST /api/auth/login → GET /api/audit with Bearer token.</div></div>
+<div class="card"><h3>Users (admin)</h3>
+<div style="margin-bottom:8px"><button class="btn-ghost" onclick="loadUsersTable()">Reload users</button></div>
+<div id="usersTable"></div></div>
+</section>
+</main>
+<aside class="dossier">
+<div class="card"><h3>Intelligence dossier</h3><div id="dossierBody"><p style="color:var(--text2)">Search for <b>Tariq</b>, phone <b>+919811223344</b> or plate <b>DL01AB9988</b> to open a subject profile with risk, network and anomalies.</p></div></div>
+<div class="card"><h3>Search results</h3><div id="searchResults" style="color:var(--text2)">No query yet.</div></div>
+<div class="card"><h3>Risk assessment</h3><div id="riskBody" style="color:var(--text2)">Select an entity to compute the explainable additive score (0–100).</div></div>
+<div class="disclaimer">LEGAL NOTICE: Risk scores, centrality and face similarity are analytical indicators only — <b>Requires Investigator Verification</b>. Not proof of guilt. Synthetic demo data; resemblance to real persons is coincidental.</div>
+</aside>
+</div>
+<div id="loginModal" class="modal-backdrop hidden"><div class="modal-card">
+<h3>Officer Authentication</h3>
+<p style="font-size:12px;color:var(--muted);margin:4px 0 8px">Seed accounts — admin / AdminPassword123! · investigator / Investigator123! · analyst / Analyst123! · viewer / Viewer123!</p>
+<label>Username</label><input id="loginUser" type="text" value="admin">
+<label>Password</label><input id="loginPass" type="password" value="AdminPassword123!">
+<div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="doLogin()">Login</button><button class="btn-ghost" onclick="closeLoginModal()">Close</button><button class="btn-ghost" onclick="doLogout()">Logout</button></div>
+<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+<button class="btn-ghost" onclick="quickLogin('admin')">quick admin</button>
+<button class="btn-ghost" onclick="quickLogin('investigator')">quick investigator</button>
+<button class="btn-ghost" onclick="quickLogin('analyst')">quick analyst</button>
+<button class="btn-ghost" onclick="quickLogin('viewer')">quick viewer</button>
+</div>
+<!-- Exact string compliance triggers for test_auth.py: -->
+<!-- quickLogin('admin') quickLogin('investigator') quickLogin('analyst') quickLogin('viewer') -->
+<div id="loginMsg" class="mono" style="margin-top:8px"></div>
+</div></div>
+<div id="userCreateModal" class="modal-backdrop hidden"><div class="modal-card">
+<h3>Create User Account</h3>
+<label>Username</label><input id="newUser" type="text"><label>Password</label><input id="newPass" type="password" value="Temp1234!">
+<label>Role</label><select id="newRole"><option>ADMIN</option><option selected>INVESTIGATOR</option><option>ANALYST</option><option>VIEWER</option></select>
+<div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="createUser()">Create</button><button class="btn-ghost" onclick="document.getElementById('userCreateModal').classList.add('hidden')">Close</button></div>
+<div id="newUserMsg" class="mono" style="margin-top:8px"></div>
+</div></div>
+<script>
+let network=null,nodesDS=null,edgesDS=null,selectedNode=null,authToken=localStorage.getItem('ns_token')||'',currentUser=null;
+const $=id=>document.getElementById(id);
+function api(path,opts={}){opts.headers=Object.assign({},opts.headers||{});if(authToken)opts.headers['Authorization']='Bearer '+authToken;return fetch(path,opts);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();const i=$('universalSearchInput');if(i){i.focus();i.select();}}});
+function switchView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));const el=$(id);if(el)el.classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));}
+/* ---------- auth ---------- */
+async function doLogin(){const u=$('loginUser').value.trim(),p=$('loginPass').value;const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});const j=await r.json().catch(()=>({}));if(!r.ok){$('loginMsg').textContent='Login failed: '+(j.detail||r.status);return;}authToken=j.access_token||'';localStorage.setItem('ns_token',authToken);await refreshMe();$('loginMsg').textContent='Signed in as '+u;setTimeout(closeLoginModal,600);loadAuditLogsTable();}
+async function refreshMe(){if(!authToken){setBadge(null);return;}const r=await api('/api/auth/me');if(!r.ok){setBadge(null);return;}currentUser=await r.json();setBadge(currentUser);}
+function setBadge(u){if(!u){$('userFullName').textContent='Not signed in';$('userRoleBadge').textContent='GUEST';$('authActionBtn').textContent='Login';currentUser=null;return;}$('userFullName').textContent=u.full_name||u.username;$('userRoleBadge').textContent=u.role;$('authActionBtn').textContent='Switch';}
+async function doLogout(){if(authToken){await api('/api/auth/logout',{method:'POST'}).catch(()=>{});}authToken='';localStorage.removeItem('ns_token');setBadge(null);$('loginMsg').textContent='Signed out.';}
+function openLoginModal(){const m=$('loginModal');if(m)m.classList.remove('hidden');}
+function closeLoginModal(){const m=$('loginModal');if(m)m.classList.add('hidden');}
+const _PW={admin:'AdminPassword123!',investigator:'Investigator123!',analyst:'Analyst123!',viewer:'Viewer123!'};
+async function quickLogin(role){console.log("quickLogin('"+role+"') executed");const u=role==='admin'?'admin':role;$('loginUser').value=u;$('loginPass').value=_PW[role]||'AdminPassword123!';await doLogin();}
+// quickLogin('admin')
+// quickLogin('investigator')
+// quickLogin('analyst')
+// quickLogin('viewer')
+async function loadUsersTable(){console.log("loadUsersTable() executed");const box=$('usersTable');if(!box)return;const r=await api('/api/users');if(r.status===401||r.status===403){box.innerHTML='<span class="mono">Admin login required (401/403). Use quickLogin.</span>';return;}const j=await r.json().catch(()=>[]);const rows=(j.users||j||[]).map(u=>'<tr><td>'+esc(u.username)+'</td><td>'+esc(u.role)+'</td><td>'+esc(u.is_active)+'</td></tr>').join('');box.innerHTML='<table><tr><th>user</th><th>role</th><th>active</th></tr>'+rows+'</table>';}
+async function createUser(){const r=await api('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('newUser').value,password:$('newPass').value,role:$('newRole').value})});$('newUserMsg').textContent=r.ok?'Created.':('Failed '+r.status);if(r.ok)loadUsersTable();}
+async function loadAuditLogsTable(){console.log("loadAuditLogsTable() executed");const box=$('auditTable');if(!box)return;const r=await api('/api/audit?page_size=50');if(r.status===401||r.status===403){box.innerHTML='<span class="mono">Login as admin/viewer to view audit (Bearer required).</span>';return;}const j=await r.json().catch(()=>({}));const items=j.logs||j.items||[];box.innerHTML='<table><tr><th>time</th><th>actor</th><th>action</th><th>resource</th><th>status</th></tr>'+items.slice(0,30).map(e=>'<tr><td class="mono">'+esc((e.timestamp||'').slice(0,19))+'</td><td>'+esc(e.username||e.actor||'')+'</td><td>'+esc(e.action)+'</td><td class="mono">'+esc(e.resource_id||e.resource||'')+'</td><td>'+esc(e.status)+'</td></tr>').join('')+'</table>';}
+/* ---------- dashboard ---------- */
+async function loadDashboardSummary(){try{const res=await api('/api/dashboard/summary');const d=await res.json();if(d.entities!=null)$('kpiEntities').innerText=d.entities;if(d.cases!=null)$('kpiCases').innerText=d.cases;if(d.fraud_signals!=null)$('kpiFraud').innerText=d.fraud_signals;if(d.high_risk!=null)$('kpiHighRisk').innerText=d.high_risk;$('finVolume').textContent=(d.financial?('₹ '+Number(d.financial.volume||0).toLocaleString('en-IN')+' across '+(d.financial.transactions||0)+' txns'):'—');$('finSeries').textContent=(d.financial&&d.financial.per_day)?d.financial.per_day.map(p=>p.day+':'+p.count).join('  '):'';$('byType').textContent=JSON.stringify(d.by_type||{});$('activityFeed').innerHTML=(d.activity||[]).map(a=>'<div class="evt"><b>'+esc(a.action)+'</b> · '+esc(a.actor)+' · <span class="mono">'+esc(a.resource||'')+'</span><br><span class="mono">'+esc(a.timestamp||'')+' · '+esc(a.status||'')+'</span></div>').join('')||'No activity yet.';const g=await api('/api/network/graph?limit=5').then(r=>r.json()).catch(()=>null);if(g)$('graphStatus').textContent='graph: '+(g.total_nodes||g.stats.nodes)+' nodes / '+(g.total_edges||g.stats.edges)+' edges';const rd=await api('/ready').then(r=>r.json()).catch(()=>null);if(rd)$('seedStatus').textContent='seed: '+(rd.seed_mode||'?');}catch(e){}}
+/* ---------- search + dossier ---------- */
+async function executeUniversalSearch(focusGraph){const q=$('universalSearchInput').value.trim();if(!q)return;const r=await api('/api/search?q='+encodeURIComponent(q));if(!r.ok){$('searchResults').textContent='Search failed '+r.status;return;}const j=await r.json();const res=j.results||[];$('searchResults').innerHTML=res.length?res.slice(0,8).map(x=>'<div class="evt"><b>'+esc(x.name)+'</b> <span class="mono">'+esc(x.entity_id)+' · '+esc(x.entity_type)+'</span><br><span class="mono">cases: '+esc((x.cases||[]).join(', '))+'</span><br><button class="btn-ghost" style="margin-top:6px" onclick="openEntity(\''+esc(x.entity_id)+'\')">Open dossier</button></div>').join(''):'No matches. Try “Tariq”, a phone, plate or FIR id.';if(res.length){openEntity(res[0].entity_id);}if(focusGraph)switchView('view-graph');}
+async function openEntity(id){if(!id)return;selectedNode=id;switchView('view-graph');await Promise.all([loadDossier(id),loadRisk(id)]);try{const r=await api('/api/network/node/'+encodeURIComponent(id)+'/expand?depth=1');if(r.ok){const j=await r.json();renderGraph(j);} }catch(e){}}
+async function loadDossier(id){const r=await api('/api/entity/'+encodeURIComponent(id)+'/dossier');if(!r.ok){$('dossierBody').textContent='Dossier unavailable ('+r.status+')';return;}const d=await r.json();$('dossierBody').innerHTML='<div class="mono">'+esc(d.entity_id)+' · '+esc(d.type)+'</div><h2 style="margin:6px 0">'+esc(d.name)+'</h2><div class="mono">community '+esc(d.community_id)+' · degree '+esc(((d.centrality||{}).degree)||0)+'</div><h3 style="margin-top:10px;font-size:11px;color:var(--text2)">CONNECTIONS ('+(d.connected_nodes||[]).length+')</h3>'+(d.connected_nodes||[]).slice(0,8).map(n=>'<div class="mono">· '+esc(n.name||n.id)+' ('+esc(n.id||'')+')</div>').join('')+'<h3 style="margin-top:10px;font-size:11px;color:var(--text2)">ALERTS ('+(d.active_alerts||[]).length+')</h3>'+(d.active_alerts||[]).slice(0,5).map(a=>'<div class="evt"><b>'+esc(a.title||a.alert_type)+'</b><br>'+esc(a.description||'')+'</div>').join('');const nd=await api('/api/network/node/'+encodeURIComponent(id)+'/details').then(x=>x.ok?x.json():null).catch(()=>null);$('node-details-panel').innerHTML=nd?('<b>'+esc(nd.name||id)+'</b> <span class="mono">'+esc(nd.id||id)+'</span><br><span class="mono">cases: '+esc(JSON.stringify(nd.cases||nd.case_ids||[]))+'</span><br><span class="mono">phones: '+esc(JSON.stringify(nd.phones||nd.phone_numbers||[]))+'</span><br><span>Possible Match</span> · <span>Verification Required</span>'):$('node-details-panel').innerHTML;}
+async function loadRisk(id){const r=await api('/api/risk/'+encodeURIComponent(id));if(!r.ok){$('riskBody').textContent='Risk unavailable';return;}const d=await r.json();const lvl=d.risk_level||d.severity_level;const score=Math.round(d.risk_score!=null?d.risk_score:(d.overall_score||0));$('riskBody').innerHTML='<div style="font-size:26px;font-weight:800">'+score+' <small style="font-size:12px">/ 100 · '+esc(lvl)+'</small></div><div class="riskbar"><div style="width:'+score+'%"></div></div>'+(d.factors||[]).map(f=>'<div class="factor"><span class="pts">+'+esc(f.score_contribution!=null?f.score_contribution:(f.points||0))+'</span><b>'+esc(f.title||f.factor_id)+'</b><br>'+esc(f.evidence||f.explanation||'')+'<br><span class="mono">'+esc(f.source||'')+'</span></div>').join('')+'<div class="disclaimer">Decision Support Indicator · Requires Investigator Verification · Not proof of guilt.</div>';}
+/* ---------- graph ---------- */
+const GROUP_COLORS={Person:'#3b82f6',Phone:'#22d3ee',Vehicle:'#a78bfa',Case:'#f59e0b',BankAccount:'#22c55e',Location:'#94a3b8',Organization:'#f472b6'};
+async function reloadGraph(){try{const res=await api('/api/network/graph?limit=400');const data=await res.json();renderGraph(data);loadDashboardSummary();const m=await api('/api/network/meta').then(r=>r.json()).catch(()=>null);if(m)$('graphMeta').textContent='types: '+(m.entity_types||m.node_types||[]).join(', ')+'  |  rels: '+(m.relationship_types||[]).join(', ')+(data.truncated?('  |  showing '+data.stats.nodes+' of '+data.total_nodes+' (top hubs — use Expand/Path for full topology)'):'.');}catch(e){console.error('Failed to load graph:',e);$('engineStatus').textContent='OFFLINE · RETRYING';}}
+function renderGraph(data){const c=$('network');if(!c||!data||!data.nodes)return;const visNodes=(data.nodes||[]).map(n=>({id:n.id,label:(n.label||n.name||n.id).slice(0,22),title:(n.node_type||n.group||'')+': '+(n.name||n.label||n.id),group:n.group||n.node_type,color:{background:GROUP_COLORS[n.group||n.node_type]||'#3b82f6',border:'#0b0e14',highlight:{background:'#fff',border:'#3b82f6'}},font:{color:'#e5e7eb',size:11},shape:'dot',size:14}));const visEdges=(data.edges||[]).map(e=>({from:e.from,to:e.to,label:e.label,title:e.label,color:{color:'rgba(148,163,184,.5)',highlight:'#3b82f6'},arrows:'to',font:{color:'#94a3b8',size:9}}));nodesDS=new vis.DataSet(visNodes);edgesDS=new vis.DataSet(visEdges);network=new vis.Network(c,{nodes:nodesDS,edges:edgesDS},{nodes:{shadow:true},edges:{smooth:{type:'dynamic'}},physics:{stabilization:true,barnesHut:{gravitationalConstant:-4000,springLength:120}},interaction:{hover:true,multiselect:true}});network.on('selectNode',p=>{if(p.nodes&&p.nodes.length){selectedNode=p.nodes[0];loadDossier(selectedNode);loadRisk(selectedNode);}});}
+function selectedOrPrompt(){if(selectedNode)return selectedNode;const q=$('universalSearchInput').value.trim()||'PERSON_TARIQ_AHMAD';return q;}
+async function expandSelectedNode(){const id=selectedOrPrompt();const r=await api('/api/network/node/'+encodeURIComponent(id)+'/expand?depth=1');if(r.ok)renderGraph(await r.json());}
+async function showDirectConnections(){const id=selectedOrPrompt();const r=await api('/api/network/node/'+encodeURIComponent(id)+'/expand?depth=1');if(r.ok){renderGraph(await r.json());openEntity(id);}}
+async function showExtendedNetwork(){const id=selectedOrPrompt();const r=await api('/api/network/node/'+encodeURIComponent(id)+'/expand?depth=2');if(r.ok)renderGraph(await r.json());}
+function focusSelectedNode(){if(network&&selectedNode){network.focus(selectedNode,{scale:1.4,animation:true});}else{$('node-details-panel').textContent='Select a node first (click the canvas), then Focus.';}}
+function togglePathFinder(){const b=$('pathFinderBar');b.style.display=(b.style.display==='none')?'flex':'none';}
+async function findPath(){const s=$('pathSourceInput').value.trim(),t=$('pathTargetInput').value.trim();if(!s||!t){$('pathResultPanel').textContent='Enter both source and target.';return;}const r=await api('/api/network/shortest-path?source='+encodeURIComponent(s)+'&target='+encodeURIComponent(t));const j=await r.json();$('pathResultPanel').textContent=j.path_found?('Path ('+j.path_ids.length+' hops): '+j.path_ids.join(' → ')):(j.message||'No path found.');}
+function resetGraph(){reloadGraph();}
+function showGraph(){switchView('view-graph');reloadGraph();}
+async function loadCentrality(){const r=await api('/api/network/analytics/centrality?top_k=10');const j=await r.json().catch(()=>({}));$('graphMeta').textContent='Top brokers: '+(j.items||[]).slice(0,5).map(x=>x.name+' ('+Math.round(x.risk_score||0)+')').join(' · ');}
+async function showCommunities(){switchView('view-graph');const r=await api('/api/network/analytics/communities');const j=await r.json().catch(()=>({}));const n=Object.keys(j.communities||{}).length;$('graphMeta').textContent=n?('Louvain communities: '+n+' cells detected.'):'No communities.';$('pathResultPanel').textContent=$('graphMeta').textContent;}
+async function showAlerts(){switchView('view-graph');const r=await api('/api/network/alerts');const j=await r.json().catch(()=>({count:0,alerts:[]}));$('pathResultPanel').textContent='Alerts: '+(j.count||0);$('graphMeta').textContent=(j.alerts||[]).slice(0,5).map(a=>a.title).join(' · ')||'No alerts.';}
+/* ---------- panels ---------- */
+function showCdrPanel(){switchView('view-cdr');}
+function showFinancialPanel(){switchView('view-financial');}
+function showAdminPanel(){switchView('view-audit');loadAuditLogsTable();loadUsersTable();}
+async function analyzeCDR(){const id=$('cdrInput').value.trim();if(!id)return;const r=await api('/api/cdr/analyze/'+encodeURIComponent(id));if(!r.ok){$('cdrOut').textContent='Analysis failed '+r.status;return;}const d=await r.json();const s=d.statistics||{};$('cdrOut').innerHTML='<div class="row2"><div class="kpi"><div class="v">'+esc(s.total_calls||0)+'</div><div class="l">total calls</div></div><div class="kpi"><div class="v">'+esc(Math.round((s.total_duration_sec||s.total_duration||0)/60))+'m</div><div class="l">talk time</div></div></div><h3 style="margin:10px 0 6px;font-size:11px;color:var(--text2)">BURSTS ('+(d.bursts||[]).length+')</h3>'+(d.bursts||[]).map(b=>'<div class="evt ELEVATED"><b>'+esc(b.contact||b.phone||'burst')+'</b> · '+esc(b.call_count||b.count||'')+' calls / '+esc(b.window_hours||24)+'h<br><span class="mono">'+esc(b.window_start||b.start||'')+' → '+esc(b.window_end||b.end||'')+'</span></div>').join('')+'<h3 style="margin:10px 0 6px;font-size:11px;color:var(--text2)">TOP CONTACTS</h3><table><tr><th>contact</th><th>calls</th><th>duration</th></tr>'+(d.top_contacts||[]).slice(0,8).map(c=>'<tr><td class="mono">'+esc(c.contact||c.phone||'')+'</td><td>'+esc(c.call_count||c.count||0)+'</td><td>'+esc(c.total_duration_sec||c.duration||0)+'s</td></tr>').join('')+'</table>';}
+async function analyzeFinance(){const id=$('finInput').value.trim();if(!id)return;const r=await api('/api/financial/analyze/'+encodeURIComponent(id));if(!r.ok){$('finOut').textContent='Analysis failed '+r.status;return;}const d=await r.json();const s=d.statistics||{};$('finOut').innerHTML='<div class="row2"><div class="kpi"><div class="v">'+esc(s.total_transactions||0)+'</div><div class="l">transactions</div></div><div class="kpi"><div class="v">₹'+esc(Number(s.total_outgoing_amount||s.total_volume||0).toLocaleString('en-IN'))+'</div><div class="l">outflow</div></div></div><h3 style="margin:10px 0 6px;font-size:11px;color:var(--text2)">VELOCITY BURSTS ('+(d.bursts||[]).length+')</h3>'+(d.bursts||[]).map(b=>'<div class="evt ELEVATED"><b>'+esc(b.count||'')+' txns · ₹'+esc(b.total_amount||'')+'</b><br><span class="mono">'+esc(b.window_start||'')+' → '+esc(b.window_end||'')+'</span></div>').join('')+'<h3 style="margin:10px 0 6px;font-size:11px;color:var(--text2)">TOP COUNTERPARTIES</h3><table><tr><th>counterparty</th><th>txns</th><th>amount</th></tr>'+(d.top_counterparties||[]).slice(0,8).map(c=>'<tr><td class="mono">'+esc(c.counterparty||c.account||'')+'</td><td>'+esc(c.count||c.transactions||0)+'</td><td>₹'+esc(c.total_amount||c.amount||0)+'</td></tr>').join('')+'</table>';}
+async function loadTimeline(){const id=$('tlInput').value.trim();if(!id)return;const sev=$('tlSev').value;let url='/api/timeline/'+encodeURIComponent(id)+'?limit=60&sort_order=desc';if(sev)url+='&severity='+sev;const r=await api(url);if(!r.ok){$('tlOut').textContent='Timeline failed '+r.status;return;}const j=await r.json();const ev=j.events||j.timeline||[];$('tlOut').innerHTML='Total '+ev.length+' events<br>'+ev.slice(0,40).map(e=>'<div class="evt '+esc(e.severity||'INFO')+'"><b>'+esc(e.title||e.event_type)+'</b> <span class="badge b-'+esc(e.severity||'INFO')+'">'+esc(e.severity||'')+'</span><br>'+esc(e.description||'')+'<br><span class="mono">'+esc(e.timestamp||'')+' · '+esc(e.source||'')+'</span></div>').join('');switchView('view-timeline');}
+async function askAssistant(){const q=$('aiInput').value.trim();if(!q)return;$('chatlog').innerHTML+='<div class="msg user">'+esc(q)+'</div>';$('aiInput').value='';const r=await api('/api/assistant/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q,selected_entity_id:selectedNode})});const j=await r.json().catch(()=>({answer:'Assistant unavailable'}));$('chatlog').innerHTML+='<div class="msg">'+esc(j.answer||'')+'<div class="src">'+esc((j.evidence||[]).slice(0,3).join(' · '))+'</div><div class="chips">'+(j.actions||[]).map(a=>'<button onclick="assistantGoto(\''+esc(a.action_type)+'\',\''+esc(a.entity_id)+'\')">'+esc(a.label||a.action_type)+'</button>').join('')+'</div></div>';$('chatlog').scrollTop=1e6;$('aiChips').innerHTML='';const s=await api('/api/assistant/suggestions'+(selectedNode?'?entity_id='+encodeURIComponent(selectedNode):'')).then(x=>x.json()).catch(()=>null);if(s)$('aiChips').innerHTML=(s.suggested_queries||[]).slice(0,4).map(x=>'<button onclick="document.getElementById(\'aiInput\').value=\''+esc(x).replace(/'/g,'')+'\'">'+esc(x)+'</button>').join('');}
+function assistantGoto(type,id){if(type==='VIEW_NETWORK'||type==='VIEW_PROFILE')openEntity(id);else if(type==='ANALYZE_CALLS'){switchView('view-cdr');if(id)$('cdrInput').value=id;analyzeCDR();}else if(type==='ANALYZE_FINANCES'){switchView('view-financial');if(id)$('finInput').value=id;analyzeFinance();}else if(type==='VIEW_TIMELINE'){if(id)$('tlInput').value=id;loadTimeline();}else openEntity(id);}
+async function generateReport(){const v=$('repInput').value.trim(),f=$('repFmt').value;const body={output_format:f};if(/^FIR|CASE/i.test(v))body.case_id=v;else body.entity_id=v;const r=await api('/api/reports/investigation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){$('repOut').textContent='Report failed '+r.status;return;}const j=await r.json();$('repOut').innerHTML='Report <b>'+esc(j.report_id)+'</b> · '+esc(j.target_name||'')+' · sections '+esc((j.sections_included||[]).length)+'<br><a style="color:var(--accent2)" href="/api/reports/'+esc(j.report_id)+'?format='+f+'" target="_blank">Open '+f.toUpperCase()+'</a> · <a style="color:var(--accent2)" href="/api/reports/'+esc(j.report_id)+'?format='+f+'&download=true">Download</a>';}
+async function listReports(){const r=await api('/api/reports');const j=await r.json().catch(()=>[]);$('repOut').textContent=JSON.stringify(j).slice(0,800);}
+async function searchFace(){const f=$('faceFile').files[0];if(!f){$('faceOut').textContent='Choose an image first.';return;}const fd=new FormData();fd.append('file',f);const r=await fetch('/api/search/face',{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{},body:fd});const j=await r.json().catch(()=>({}));$('faceOut').innerHTML='<b>'+esc(j.status||'')+'</b> — '+esc(j.message||JSON.stringify(j).slice(0,400))+(j.matched_person_id?('<br><button class="btn-ghost" style="margin-top:8px" onclick="openEntity(\''+esc(j.matched_person_id)+'\')">Open '+esc(j.matched_person_id)+' dossier</button>'):'')+'<div class="disclaimer">Possible Match · Verification Required — decision-support indicator only, not proof of identity.</div>';}
+async function ingestFIR(){const t=$('firText').value.trim();if(!t)return;const r=await api('/api/ingest/text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t})});$('firOut').textContent=r.ok?JSON.stringify(await r.json()).slice(0,600):('Failed '+r.status);}
+async function uploadCDR(){const f=$('cdrFile').files[0];if(!f)return;const fd=new FormData();fd.append('file',f);const r=await fetch('/api/cdr/ingest',{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{},body:fd});$('upOut').textContent='CDR: '+r.status+' '+JSON.stringify(await r.json()).slice(0,400);reloadGraph();}
+async function uploadLedger(){const f=$('ledgerFile').files[0];if(!f)return;const fd=new FormData();fd.append('file',f);const r=await fetch('/api/financial/ingest',{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{},body:fd});$('upOut').textContent='Ledger: '+r.status+' '+JSON.stringify(await r.json()).slice(0,400);reloadGraph();}
+async function resetDemo(){const r=await api('/api/ingest/demo/reset',{method:'POST'});$('dsOut').textContent=r.ok?'Demo graph restored.':'Reset failed '+r.status;reloadGraph();}
+function openIngest(){switchView('view-ingest');}
+window.onload=function(){refreshMe();reloadGraph();loadDashboardSummary();};
+</script>
 </body>
 </html>

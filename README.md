@@ -191,9 +191,11 @@ python -m uvicorn app.main:app --reload
 | Username | Password | Role | Permissions |
 |---|---|---|---|
 | `admin` | `AdminPassword123!` | `ADMIN` | Full access, user management, audit logs |
-| `investigator1` | `InvestigatorPassword123!` | `INVESTIGATOR` | Search, face search, graph, CDR, finance, reports |
-| `analyst1` | `AnalystPassword123!` | `ANALYST` | Graph analytics, AI assistant queries, timelines |
-| `viewer1` | `ViewerPassword123!` | `VIEWER` | Read-only observation |
+| `investigator` | `Investigator123!` | `INVESTIGATOR` | Search, face search, graph, CDR, finance, reports |
+| `analyst` | `Analyst123!` | `ANALYST` | Graph analytics, AI assistant queries, timelines |
+| `viewer` | `Viewer123!` | `VIEWER` | Read-only observation |
+
+> Seeded automatically on first boot by `app/core/auth_service.py`. Delete `sample_data/users.json` to re-seed. Rotate before any production use.
 
 ---
 
@@ -202,7 +204,7 @@ Run the complete automated test suite:
 ```bash
 python -m pytest -q
 ```
-**Test Results**: `139 passed, 0 failed, 3 warnings in ~7s`.
+**Test Results**: `145 passed, 0 failed` (run `python -m pytest -q`).
 
 ---
 

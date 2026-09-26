@@ -27,13 +27,15 @@ from app.core.graph_engine import get_graph_engine
 from app.core.face_storage import get_face_storage
 from app.core.demo_face_data import seed_demo_face_database
 from app.core.production_seed import seed_real_data_if_available
-from app.api.routes_ingest import ingest_sample_batch_data
+from app.api.routes_ingest import load_dataset_by_name
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 from app.api.routes_ingest import load_dataset_by_name
 from contextlib import asynccontextmanager
+
+_seed_summary: dict = {"mode": "not-started"}
 
 
 @asynccontextmanager
@@ -69,13 +71,16 @@ async def lifespan(fastapi_app: FastAPI):
     # face watchlist manifest); falls back silently when artifacts are absent.
     try:
         seed_summary = seed_real_data_if_available(graph)
+        _seed_summary.clear()
+        _seed_summary.update(seed_summary)
         logger.info(f"Production seeding mode={seed_summary['mode']}: "
                     f"paysim={seed_summary['paysim'].get('records_added', 0)} "
                     f"email_cases={seed_summary['email'].get('cases_created', 0)} "
                     f"watchlist_persons={seed_summary['faces'].get('persons_created', 0)}")
     except Exception as e:
         logger.warning(f"Production seeding failed, using synthetic fallback: {e}")
-        seed_summary = {"mode": "synthetic-fallback"}
+        _seed_summary.clear()
+        _seed_summary.update({"mode": "synthetic-fallback"})
 
     # Initialize demo financial storage (synthetic fallback only when no
     # real PaySim live seed was ingested above).
@@ -83,7 +88,7 @@ async def lifespan(fastapi_app: FastAPI):
         from app.core.financial_analytics import get_financial_storage, get_financial_service
         from app.core.financial_parser import FinancialParser
         f_store = get_financial_storage()
-        paysim_live = bool(seed_summary.get("paysim", {}).get("records_added"))
+        paysim_live = bool(_seed_summary.get("paysim", {}).get("records_added"))
         if not paysim_live and len(f_store.get_all_records()) == 0:
             demo_csv_path = os.path.join(settings.BASE_DIR, "sample_data", "demo_financial.csv")
             if os.path.exists(demo_csv_path):
@@ -131,7 +136,9 @@ app.include_router(graph_router, prefix=settings.API_V1_STR)
 app.include_router(analytics_router, prefix=settings.API_V1_STR)
 app.include_router(alerts_router, prefix=settings.API_V1_STR)
 app.include_router(search_router, prefix=settings.API_V1_STR)
-app.include_router(search_router, prefix="")  # Support /search as well as /api/search
+# Alias mount for bare /search + /face/* paths (hidden from schema to
+# avoid duplicate operation IDs with the canonical /api mount above).
+app.include_router(search_router, prefix="", include_in_schema=False)
 app.include_router(cdr_router, prefix=settings.API_V1_STR)
 app.include_router(financial_router, prefix=settings.API_V1_STR)
 app.include_router(timeline_router, prefix=settings.API_V1_STR)
@@ -146,13 +153,12 @@ static_path = os.path.join(settings.BASE_DIR, "static")
 if os.path.exists(static_path):
     app.mount("/static", StaticFiles(directory=static_path), name="static")
 
-sample_data_path = os.path.join(settings.BASE_DIR, "sample_data")
-if os.path.exists(sample_data_path):
-    app.mount("/sample_data", StaticFiles(directory=sample_data_path), name="sample_data")
+# NOTE: sample_data/ is intentionally NOT mounted. It contains users.json
+# (password hashes) and audit_log.json (operational trail) which must never
+# be served over HTTP. Use authenticated /api/* endpoints instead.
 
 
 @app.get("/health", tags=["system"])
-@app.get("/api/health", tags=["system"])
 def health_check():
     """System health check endpoint for monitoring probes."""
     return {
@@ -161,6 +167,39 @@ def health_check():
         "version": "1.0.0",
         "database": "active",
     }
+
+
+@app.get("/api/health", tags=["system"], include_in_schema=False)
+def health_check_alias():
+    """Alias for reverse proxies / Render health checks under /api."""
+    return health_check()
+
+
+@app.get("/ready", tags=["system"])
+def readiness_check():
+    """Readiness probe: graph counts + seeding mode (no secrets)."""
+    try:
+        graph = get_graph_engine()
+        node_count = len(graph.get_all_nodes())
+        edge_count = len(graph.get_all_edges())
+    except Exception:
+        node_count, edge_count = 0, 0
+    return {
+        "status": "ready" if node_count else "empty",
+        "nodes": node_count,
+        "edges": edge_count,
+        "seed_mode": _seed_summary.get("mode", "unknown"),
+        "service": settings.PROJECT_NAME,
+    }
+
+
+@app.get("/api/graph", tags=["network"], include_in_schema=False)
+def graph_compat_alias():
+    """Legacy alias: old dashboard called GET /api/graph; canonical is /api/network/graph."""
+    graph = get_graph_engine()
+    from app.api.routes_graph import graph_payload
+
+    return graph_payload(graph.get_all_nodes(), graph.get_all_edges())
 
 
 @app.get("/", include_in_schema=False)

@@ -117,6 +117,34 @@ def generate_investigation_report(
     return response
 
 
+@router.post(
+    "/generate",
+    response_model=InvestigationReportResponse,
+    summary="Alias of /reports/investigation (ARCHITECTURE.md compat)",
+    include_in_schema=False,
+)
+def generate_report_alias(
+    request: InvestigationReportRequest,
+    download: bool = Query(False, description="If true, directly streams the file attachment (PDF/HTML)"),
+) -> Any:
+    return generate_investigation_report(request, download=download)
+
+
+@router.get(
+    "/templates",
+    summary="List available report sections/templates",
+)
+def report_templates() -> Any:
+    """Docs-compatible endpoint (ARCHITECTURE.md /reports/templates)."""
+    from app.models.report_models import ReportSection
+
+    return {
+        "sections": [s.value for s in ReportSection],
+        "formats": ["pdf", "html", "json"],
+        "default_sections": [s.value for s in ReportSection],
+    }
+
+
 @router.get(
     "/{report_id}",
     summary="Retrieve previously generated report by ID",

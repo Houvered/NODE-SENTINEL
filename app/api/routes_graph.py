@@ -44,9 +44,27 @@ def graph_payload(nodes, edges):
 
 
 @router.get("/network/graph")
-def get_graph():
+def get_graph(limit: int = Query(2000, ge=1, le=10000, description="Max nodes to return (canvas guard for large live graphs)")):
     graph = get_graph_engine()
-    return graph_payload(graph.get_all_nodes(), graph.get_all_edges())
+    nodes = graph.get_all_nodes()
+    edges = graph.get_all_edges()
+    if len(nodes) > limit:
+        # Deterministic triage: highest-degree nodes first so the canvas
+        # stays usable on 4k+ live graphs; full topology via expand/path APIs.
+        from collections import Counter
+        deg = Counter()
+        for e in edges:
+            deg[e.source] += 1
+            deg[e.target] += 1
+        keep = {n.id for n in sorted(nodes, key=lambda n: deg.get(n.id, 0), reverse=True)[:limit]}
+        nodes = [n for n in nodes if n.id in keep]
+        edges = [e for e in edges if e.source in keep and e.target in keep]
+        payload = graph_payload(nodes, edges)
+        payload["truncated"] = True
+        payload["total_nodes"] = len(graph.get_all_nodes())
+        payload["total_edges"] = len(graph.get_all_edges())
+        return payload
+    return graph_payload(nodes, edges)
 
 
 @router.get("/network/overview")

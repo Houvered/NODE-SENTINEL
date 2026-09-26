@@ -11,11 +11,30 @@ from fastapi import APIRouter, HTTPException
 
 from app.core.anomaly_detector import AnomalyDetector
 from app.core.graph_engine import get_graph_engine
+from app.core.risk_intelligence import RiskIntelligenceEngine
 from app.models.risk_models import RiskIntelligenceResult
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/risk", tags=["risk"])
+
+
+@router.get("/summary")
+def risk_summary(top_k: int = 20):
+    """Ranked riskiest Person entities (powers dashboard + docs /risk/summary)."""
+    try:
+        engine = RiskIntelligenceEngine(get_graph_engine())
+        items = engine.summarize(top_k=max(1, min(top_k, 100)))
+        return {"count": len(items), "items": items}
+    except Exception as e:
+        logger.error(f"Error building risk summary: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to build risk summary: {str(e)}")
+
+
+@router.get("/evaluate/{entity_id}", response_model=RiskIntelligenceResult)
+def evaluate_entity_risk_alias(entity_id: str):
+    """Docs-compatible alias of GET /risk/{entity_id} (ARCHITECTURE.md)."""
+    return get_entity_risk(entity_id)
 
 
 @router.get("/{entity_id}", response_model=RiskIntelligenceResult)

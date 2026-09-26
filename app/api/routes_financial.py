@@ -39,6 +39,7 @@ def get_financial_service() -> FinancialService:
 
 
 @router.post("/ingest", response_model=FinancialIngestResponse)
+@router.post("/upload", response_model=FinancialIngestResponse, include_in_schema=False)
 async def ingest_financial(
     request: Request,
     file: Optional[UploadFile] = File(None, description="CSV or JSON financial transaction file to upload"),
