@@ -88,6 +88,32 @@ def test_viewer_readonly_and_delete_guards(client):
     assert client.get(f"/api/cases/{case_id}", headers=admin).status_code == 404
 
 
+def test_delete_purges_case_graph_but_keeps_shared_nodes(client):
+    admin = login(client, "admin", "AdminPassword123!")
+    case_id = client.post("/api/cases", headers=admin, json={"title": "Purge Case"}).json()["id"]
+    fir = ("FIR 2026-P. Accused Purge Mehta called +919700000001. FIR-2026-P.").encode()
+    doc = client.post(f"/api/cases/{case_id}/documents", headers=admin,
+                      files={"file": ("fir.txt", fir, "text/plain")}).json()["document"]["id"]
+    client.post(f"/api/documents/{doc}/process", headers=admin)
+    for e in client.get(f"/api/cases/{case_id}/extractions", headers=admin).json()["extractions"]:
+        client.post(f"/api/cases/{case_id}/extractions/{e['id']}/review", headers=admin,
+                    json={"review_status": "analyst-reviewed"})
+    assert client.post(f"/api/cases/{case_id}/graph/build", headers=admin).json()["edges_created"] >= 1
+
+    from app.core.graph_engine import get_graph_engine
+    g = get_graph_engine()
+    assert g.get_node("PERSON_PURGE_MEHTA") is not None
+    assert g.get_node("PERSON_TARIQ_AHMAD") is not None  # shared demo node
+
+    client.patch(f"/api/cases/{case_id}", headers=admin, json={"status": "archived"})
+    r = client.delete(f"/api/cases/{case_id}?confirm=true", headers=admin).json()
+    assert r["edges_removed"] >= 1
+    # case-only nodes are gone; shared demo nodes survive
+    assert g.get_node("PERSON_PURGE_MEHTA") is None
+    assert g.get_node("PERSON_TARIQ_AHMAD") is not None
+    assert not [e for e in g.get_all_edges() if (e.properties or {}).get("case_id") == case_id]
+
+
 def test_public_register_disabled_by_default(client):
     r = client.post("/api/auth/register", json={"username": "newbie1", "password": "Password123!"})
     assert r.status_code == 403

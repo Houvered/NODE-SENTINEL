@@ -28,6 +28,8 @@ class BaseGraphEngine(ABC):
     @abstractmethod
     def remove_node(self, node_id: str) -> bool: ...
     @abstractmethod
+    def remove_edge(self, edge_id: str) -> bool: ...
+    @abstractmethod
     def clear(self) -> None: ...
 
 
@@ -317,6 +319,17 @@ class NetworkXGraphEngine(BaseGraphEngine):
         del self._nodes[node_id]
         if self.graph.has_node(node_id):
             self.graph.remove_node(node_id)
+        return True
+
+    def remove_edge(self, edge_id: str) -> bool:
+        """Remove a single edge by ID. Returns False if absent."""
+        edge = self._edges.pop(edge_id, None)
+        if edge is None:
+            return False
+        try:
+            self.graph.remove_edge(edge.source, edge.target, key=edge_id)
+        except Exception:
+            pass
         return True
 
     def clear(self) -> None:

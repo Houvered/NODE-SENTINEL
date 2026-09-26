@@ -125,8 +125,11 @@ def delete_case(case_id: str, request: Request, confirm: bool = Query(False),
     case_dir = Path(settings.DATA_DIR) / "cases" / case_id
     if case_dir.exists():
         shutil.rmtree(case_dir, ignore_errors=True)
-    _audit(request, "CASE_DELETED", user, case_id)
-    return {"status": "deleted", "case_id": case_id}
+    from app.core.graph_engine import get_graph_engine
+    from app.core.graph_promote import purge_case_graph
+    purged = purge_case_graph(get_graph_engine(), case_id)
+    _audit(request, "CASE_DELETED", user, case_id, details=purged)
+    return {"status": "deleted", "case_id": case_id, **purged}
 
 
 @router.get("/{case_id}/members", response_model=List[MemberResponse])

@@ -177,6 +177,29 @@ def _shape_edge(store, graph, ext: Dict[str, Any], case_id: str) -> Optional[Tup
     return src, tgt, rel, props
 
 
+def purge_case_graph(graph, case_id: str) -> Dict[str, Any]:
+    """Remove a deleted case's evidence from the shared graph.
+
+    - Deletes every edge tagged with the case.
+    - Deletes nodes tagged with the case ONLY when no incident edges
+      remain (shared entities still used by other cases or demo data
+      are preserved; their stale case tag is left for the owning case).
+    - Always drops the case anchor node when edgeless.
+    Returns counts for the audit trail.
+    """
+    edges_removed = nodes_removed = 0
+    for e in [x for x in graph.get_all_edges()
+              if (x.properties or {}).get("case_id") == case_id]:
+        if graph.remove_edge(e.id):
+            edges_removed += 1
+    for n in [x for x in graph.get_all_nodes()
+              if (x.properties or {}).get("case_id") == case_id or x.id == f"CASE_{case_id}"]:
+        still_linked = any(e.source == n.id or e.target == n.id for e in graph.get_all_edges())
+        if not still_linked and graph.remove_node(n.id):
+            nodes_removed += 1
+    return {"edges_removed": edges_removed, "nodes_removed": nodes_removed}
+
+
 def _resolve_endpoint(store, graph, case_id: str, nlp_id: str) -> Optional[str]:
     """Map an NLP entity ID to its canonical promoted node ID."""
     if graph.get_node(nlp_id):
