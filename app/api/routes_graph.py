@@ -81,6 +81,53 @@ def network_overview():
     return {"entity_count": len(nodes), "relationship_count": len(graph.get_all_edges()), "high_risk_count": len(high_risk), "alert_count": len(alerts), "by_type": by_type}
 
 
+@router.get("/network/operations")
+def network_operations():
+    """Criminal-ring census + per-operation readiness (unified-seed rings).
+
+    Returns the three investigative operations (heads, person counts,
+    status) plus telemetry readiness: CDR records, financial records,
+    email-fraud cases, face identities. Powers dashboard quick-jump chips.
+    """
+    from app.core.unified_seed import census_rings
+
+    graph = get_graph_engine()
+    rings = census_rings(graph)
+    try:
+        from app.core.cdr_analytics import get_cdr_storage
+        cdr_records = len(get_cdr_storage().get_all_records())
+    except Exception:
+        cdr_records = 0
+    try:
+        from app.core.financial_analytics import get_financial_storage
+        fin_records = len(get_financial_storage().get_all_records())
+    except Exception:
+        fin_records = 0
+    email_cases = 0
+    try:
+        for n in graph.get_all_nodes():
+            lbl = n.label.value if hasattr(n.label, "value") else str(n.label)
+            if lbl == "Case" and (n.properties or {}).get("fraud_score") is not None:
+                email_cases += 1
+    except Exception:
+        pass
+    try:
+        from app.core.face_storage import get_face_storage
+        face_identities = len(get_face_storage().list_identities())
+    except Exception:
+        face_identities = 0
+    return {
+        "rings": rings,
+        "rings_ok": sum(1 for r in rings if r.get("status") == "ok"),
+        "readiness": {
+            "cdr_records": cdr_records,
+            "financial_records": fin_records,
+            "email_fraud_cases": email_cases,
+            "face_identities": face_identities,
+        },
+    }
+
+
 def _normalize_phone_digits(val: str) -> str:
     digits = "".join(c for c in str(val) if c.isdigit())
     if digits.startswith("91") and len(digits) == 12:
