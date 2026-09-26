@@ -145,6 +145,9 @@ label{font-size:11px;color:var(--text2);display:block;margin:8px 0 4px}
 <section id="view-graph" class="view">
 <div class="card"><h3>Knowledge Graph — multi-relational topology (7 entities · 6 relations)</h3>
 <div class="toolbar">
+<button onclick="openOperation('hawala_falcon')">Operation Hawala Falcon</button>
+<button onclick="openOperation('noida_cell')">Noida Cell</button>
+<button onclick="openOperation('mule_ring')">Mule Ring</button>
 <button onclick="expandSelectedNode()">[Expand Connections]</button>
 <button onclick="showDirectConnections()">[Show Direct Connections]</button>
 <button onclick="showExtendedNetwork()">[Show Extended Network]</button>
@@ -159,6 +162,7 @@ label{font-size:11px;color:var(--text2);display:block;margin:8px 0 4px}
 <div id="pathResultPanel" class="mono">Enter two entity IDs to trace the shortest investigative path.</div>
 <div id="node-details-panel" class="node-details-panel">Select a node to inspect cases, phones, vehicles. <span>Possible Match</span> · <span>Verification Required</span> — decision-support indicator only.</div>
 <div id="graphMeta" class="mono" style="margin-top:8px;color:var(--text2)"></div>
+<div id="opsLine" class="mono" style="margin-top:6px;color:var(--text2)">Operations: loading…</div>
 </div>
 </section>
 <!-- CDR -->
@@ -298,6 +302,9 @@ function focusSelectedNode(){if(network&&selectedNode){network.focus(selectedNod
 function togglePathFinder(){const b=$('pathFinderBar');b.style.display=(b.style.display==='none')?'flex':'none';}
 async function findPath(){const s=$('pathSourceInput').value.trim(),t=$('pathTargetInput').value.trim();if(!s||!t){$('pathResultPanel').textContent='Enter both source and target.';return;}const r=await api('/api/network/shortest-path?source='+encodeURIComponent(s)+'&target='+encodeURIComponent(t));const j=await r.json();$('pathResultPanel').textContent=j.path_found?('Path ('+j.path_ids.length+' hops): '+j.path_ids.join(' → ')):(j.message||'No path found.');}
 function resetGraph(){reloadGraph();}
+const OPS_HEADS={hawala_falcon:'PERSON_TARIQ_AHMAD',noida_cell:'PERSON_RAHUL_SHARMA',mule_ring:'PERSON_ARJUN_MEHTA'};
+async function openOperation(key){const id=OPS_HEADS[key];if(id)openEntity(id);try{const r=await api('/api/network/operations');if(r.ok){const j=await r.json();const ring=(j.rings||[]).find(x=>x.key===key);if(ring)$('opsLine').textContent=ring.label+' — head '+ring.head+' · '+ring.person_count+' criminals · '+ring.status+' · rings ok '+j.rings_ok+'/3';}}catch(e){}}
+async function refreshOpsLine(){try{const r=await api('/api/network/operations');if(!r.ok)return;const j=await r.json();$('opsLine').textContent=(j.rings||[]).map(x=>x.label.split(' ').pop()+':'+x.person_count+'p/'+x.status).join(' · ')+'  |  CDR '+j.readiness.cdr_records+' · ledger '+j.readiness.financial_records+' · email cases '+j.readiness.email_fraud_cases+' · faces '+j.readiness.face_identities;}catch(e){}}
 function showGraph(){switchView('view-graph');reloadGraph();}
 async function loadCentrality(){const r=await api('/api/network/analytics/centrality?top_k=10');const j=await r.json().catch(()=>({}));$('graphMeta').textContent='Top brokers: '+(j.items||[]).slice(0,5).map(x=>x.name+' ('+Math.round(x.risk_score||0)+')').join(' · ');}
 async function showCommunities(){switchView('view-graph');const r=await api('/api/network/analytics/communities');const j=await r.json().catch(()=>({}));const n=Object.keys(j.communities||{}).length;$('graphMeta').textContent=n?('Louvain communities: '+n+' cells detected.'):'No communities.';$('pathResultPanel').textContent=$('graphMeta').textContent;}
@@ -319,7 +326,7 @@ async function uploadCDR(){const f=$('cdrFile').files[0];if(!f)return;const fd=n
 async function uploadLedger(){const f=$('ledgerFile').files[0];if(!f)return;const fd=new FormData();fd.append('file',f);const r=await fetch('/api/financial/ingest',{method:'POST',headers:authToken?{'Authorization':'Bearer '+authToken}:{},body:fd});$('upOut').textContent='Ledger: '+r.status+' '+JSON.stringify(await r.json()).slice(0,400);reloadGraph();}
 async function resetDemo(){const r=await api('/api/ingest/demo/reset',{method:'POST'});$('dsOut').textContent=r.ok?'Demo graph restored.':'Reset failed '+r.status;reloadGraph();}
 function openIngest(){switchView('view-ingest');}
-window.onload=function(){refreshMe();reloadGraph();loadDashboardSummary();};
+window.onload=function(){refreshMe();reloadGraph();loadDashboardSummary();refreshOpsLine();};
 </script>
 </body>
 </html>
