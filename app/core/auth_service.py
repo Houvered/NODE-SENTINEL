@@ -290,10 +290,11 @@ class UserRepository:
                 raise ValueError(f"Username '{req.username}' already exists")
 
             user_id = f"usr_{uuid.uuid4().hex[:8]}"
+            display_name = (req.full_name or "").strip() or req.username.strip()
             user = User(
                 user_id=user_id,
                 username=req.username.strip(),
-                full_name=req.full_name.strip(),
+                full_name=display_name,
                 role=req.role,
                 password_hash=PasswordHasher.hash_password(req.password),
                 is_active=req.is_active,
