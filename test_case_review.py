@@ -73,8 +73,11 @@ def test_review_and_build(setup):
     assert node.properties.get("review_status") == "analyst-reviewed"
     assert node.properties.get("source_document_id") == doc_id
     assert node.properties.get("evidence_text")
-    # rejected rows never entered the graph: Faiz Sheikh was rejected
-    assert g.get_node("PERSON_FAIZ_SHEIKH") is None
+    # rejected rows never entered the graph for THIS case: Faiz Sheikh was
+    # rejected here (the node may exist from another test's case — the
+    # shared engine is global — so assert this case never tagged it).
+    faiz = g.get_node("PERSON_FAIZ_SHEIKH")
+    assert faiz is None or faiz.properties.get("case_id") != case_id
     # rebuild is idempotent (no dupes)
     r2 = c.post(f"/api/cases/{case_id}/graph/build", headers=inv).json()
     assert r2["nodes_created"] == 0 and r2["edges_created"] == 0
