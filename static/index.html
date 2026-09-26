@@ -20,32 +20,38 @@
     </script>
     <style>
         :root {
-            /* CyFocus theme: near-black high-contrast base, ember-orange action accent */
-            --bg: #070604;
-            --surface: #0e0c09;
-            --surface2: #161210;
-            --surface-hover: #201915;
-            --line: #2a2119;
-            --line-light: rgba(255, 255, 255, 0.08);
-            --text: #f7f3ec;
-            --text-secondary: #d8cbb8;
-            --muted: #9a8b76;
-            --teal: #2dd4bf;
-            --teal-glow: rgba(45, 212, 191, 0.28);
-            --accent: #ff5c1a;
-            --accent-strong: #e8480c;
-            --accent-ink: #ffffff;
-            --accent-glow: rgba(255, 92, 26, 0.32);
-            --amber: #fbbf24;
-            --red: #f87171;
-            --blue: #38bdf8;
-            --purple: #c084fc;
-            --pink: #f472b6;
-            --coral: #fb923c;
-            --indigo: #818cf8;
-            --card-bg: rgba(10, 17, 31, 0.92);
-            --card-border: rgba(120, 150, 190, 0.16);
-            --card-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+            /* CyFocus theme: obsidian-navy high-contrast base with glowing cyan & violet accents */
+            --bg: #060911;
+            --surface: #0a0f1d;
+            --surface2: #0f172a;
+            --surface-hover: #162238;
+            --line: rgba(255, 255, 255, 0.08);
+            --line-light: rgba(255, 255, 255, 0.05);
+            --line-accent: rgba(0, 242, 254, 0.25);
+            --text: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --muted: #64748b;
+            --teal: #00f2fe;
+            --teal-glow: rgba(0, 242, 254, 0.35);
+            --accent: #00f2fe;
+            --accent-strong: #00d2ff;
+            --accent-ink: #060911;
+            --accent-glow: rgba(0, 242, 254, 0.4);
+            --violet: #8b5cf6;
+            --violet-glow: rgba(139, 92, 246, 0.4);
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --red-glow: rgba(239, 68, 68, 0.35);
+            --green: #10b981;
+            --green-glow: rgba(16, 185, 129, 0.3);
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+            --pink: #ec4899;
+            --coral: #f97316;
+            --indigo: #6366f1;
+            --card-bg: rgba(15, 23, 42, 0.82);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
 
         * {
@@ -3786,6 +3792,168 @@
                 font-size: 9px;
             }
         }
+    
+        /* CyFocus Modern Theme Enhancements */
+        .topbar {
+            background: linear-gradient(180deg, #0d1527 0%, #070c18 100%) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .brand {
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #ffffff !important;
+            font-size: 16px !important;
+        }
+
+        .brand-dot {
+            background: #00f2fe !important;
+            box-shadow: 0 0 16px rgba(0, 242, 254, 0.6) !important;
+        }
+
+        .system-threat-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #f8fafc;
+            user-select: none;
+        }
+
+        .system-threat-pill .threat-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+            animation: pulse-red 1.8s infinite ease-in-out;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px #ef4444; }
+            50% { transform: scale(1.3); opacity: 0.7; box-shadow: 0 0 18px #ef4444; }
+        }
+
+        .universal-search-box {
+            background: rgba(15, 23, 42, 0.9) !important;
+            border: 1px solid rgba(0, 242, 254, 0.25) !important;
+            border-radius: 10px !important;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .universal-search-box input {
+            color: #f8fafc !important;
+        }
+
+        .shortcut-chip {
+            font-size: 10px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #94a3b8;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin-right: 6px;
+            user-select: none;
+        }
+
+        .sidebar {
+            background: #070c18 !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .sidebar-cta {
+            background: linear-gradient(135deg, #00f2fe 0%, #0088ff 100%) !important;
+            color: #060911 !important;
+            font-weight: 700 !important;
+            border: none !important;
+            box-shadow: 0 4px 16px rgba(0, 242, 254, 0.35) !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .sidebar-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.5) !important;
+        }
+
+        .nav {
+            border-left: 3px solid transparent;
+            transition: all 0.15s ease;
+            color: #94a3b8 !important;
+            font-size: 12.5px !important;
+            padding: 8px 12px !important;
+            border-radius: 6px !important;
+        }
+
+        .nav:hover {
+            background: rgba(15, 23, 42, 0.8) !important;
+            color: #f8fafc !important;
+        }
+
+        .nav.active {
+            background: linear-gradient(90deg, rgba(0, 242, 254, 0.12) 0%, rgba(15, 23, 42, 0.4) 100%) !important;
+            color: #00f2fe !important;
+            border-left-color: #00f2fe !important;
+            font-weight: 600 !important;
+        }
+
+        .nav .icon {
+            color: #00f2fe !important;
+            font-size: 14px;
+        }
+
+        .kpi-strip {
+            gap: 12px !important;
+        }
+
+        .kpi {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(10, 16, 29, 0.85) 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
+            transition: all 0.2s ease;
+        }
+
+        .kpi:hover {
+            border-color: rgba(0, 242, 254, 0.3) !important;
+            transform: translateY(-2px);
+        }
+
+        .kpi-value {
+            color: #f8fafc !important;
+            font-weight: 800 !important;
+        }
+
+        .kpi-sub {
+            color: #64748b !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.8px !important;
+        }
+
+        .rightbar {
+            background: #070c18 !important;
+            border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .panel {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 10px !important;
+        }
+
+        .eyebrow {
+            color: #00f2fe !important;
+            font-weight: 700 !important;
+            letter-spacing: 1px !important;
+        }
+
     </style>
 </head>
 
@@ -3807,20 +3975,9 @@
             <div class="tag">AI INTELLIGENCE ENGINE</div>
 
             <!-- Investigation Workflow Indicator -->
-            <div class="workflow-pipeline-bar" title="Investigative Intelligence Workflow Progression">
-                <span class="wf-step" id="wf-step-search" onclick="showUniversalSearchOverlay()">1. Search</span>
-                <span class="wf-arrow">→</span>
-                <span class="wf-step active" id="wf-step-graph" onclick="showGraph()">2. Graph</span>
-                <span class="wf-arrow">→</span>
-                <span class="wf-step" id="wf-step-cdr" onclick="showCdrPanel()">3. CDR</span>
-                <span class="wf-arrow">→</span>
-                <span class="wf-step" id="wf-step-fin" onclick="showFinancialPanel()">4. Finance</span>
-                <span class="wf-arrow">→</span>
-                <span class="wf-step" id="wf-step-timeline" onclick="showTimelinePanel()">5. Timeline</span>
-                <span class="wf-arrow">→</span>
-                <span class="wf-step" id="wf-step-ai" onclick="showAssistantPanel()">6. AI Copilot</span>
-                <span class="wf-arrow">→</span>
-                <span class="wf-step" id="wf-step-report" onclick="openReportModal()">7. Report</span>
+            <div class="system-threat-pill" title="Live Threat Engine Status">
+                <span class="threat-dot"></span>
+                <span class="threat-text">SYSTEM OPERATIONAL | THREAT MONITOR: ELEVATED</span>
             </div>
 
             <!-- Universal Search Box -->
@@ -3871,56 +4028,47 @@
             </div>
 
             <button class="button primary sidebar-cta" onclick="openIngest()" title="Start a new investigation case">
-                + New case
+                + NEW INVESTIGATION
             </button>
 
-            <div class="nav-label" onclick="toggleNavGroup(this)">INVESTIGATION <span class="chev">▾</span></div>
-            <button id="nav-graph" class="nav active" onclick="showGraph()"
-                title="Interactive Knowledge Graph Network View">
-                <span class="icon">◉</span> Network Graph
-            </button>
-            <button id="nav-search" class="nav" onclick="showUniversalSearchOverlay()"
-                title="Universal Multi-Entity Search">
-                <span class="icon">🔎</span> Universal Search
-            </button>
-
-            <div class="nav-label" style="margin-top: 14px" onclick="toggleNavGroup(this)">ANALYTICS <span class="chev">▾</span></div>
-            <button id="nav-centrality" class="nav" onclick="showAnalytics()"
-                title="Betweenness Brokerage & Centrality Rankings">
-                <span class="icon">◫</span> Centrality & Brokers
-            </button>
-            <button id="nav-communities" class="nav" onclick="showCommunities()"
-                title="Louvain Community Detection Clusters">
-                <span class="icon">❖</span> Louvain Clusters
+            <div class="nav-label">MONITORING</div>
+            <button id="nav-graph" class="nav active" onclick="showGraph()" title="Interactive Knowledge Graph Network View">
+                <span class="icon">🌐</span> Network Graph
             </button>
             <button id="nav-alerts" class="nav" onclick="showAlerts()" title="Active Criminal Anomaly Alerts">
-                <span class="icon">⚠</span> Anomaly Alerts
+                <span class="icon">🚨</span> Anomaly Alerts
             </button>
+
+            <div class="nav-label" style="margin-top: 14px">ANALYSIS & CLUSTERS</div>
+            <button id="nav-search" class="nav" onclick="showUniversalSearchOverlay()" title="Universal Multi-Entity Search">
+                <span class="icon">🔎</span> Universal Search
+            </button>
+            <button id="nav-communities" class="nav" onclick="showCommunities()" title="Louvain Community Detection Clusters">
+                <span class="icon">👥</span> Louvain Clusters
+            </button>
+            <button id="nav-centrality" class="nav" onclick="showAnalytics()" title="Betweenness Brokerage & Centrality Rankings">
+                <span class="icon">◫</span> Centrality Brokers
+            </button>
+
+            <div class="nav-label" style="margin-top: 14px">SIGNAL INTELLIGENCE</div>
             <button id="nav-cdr" class="nav" onclick="showCdrPanel()" title="Call Detail Record Analysis & Frequency">
-                <span class="icon">📞</span> CDR / Call Analysis
+                <span class="icon">📞</span> CDR Call Analysis
             </button>
-            <button id="nav-financial" class="nav" onclick="showFinancialPanel()"
-                title="Hawala & Financial Flow Reconstruction">
-                <span class="icon">💳</span> Financial Analysis
+            <button id="nav-financial" class="nav" onclick="showFinancialPanel()" title="Hawala & Financial Flow Reconstruction">
+                <span class="icon">💳</span> Financial Flow
             </button>
-            <button id="nav-timeline" class="nav" onclick="showTimelinePanel()"
-                title="Multi-Source Unified Timeline Sequence">
-                <span class="icon">🕒</span> Investigation Timeline
+            <button id="nav-timeline" class="nav" onclick="showTimelinePanel()" title="Multi-Source Unified Timeline Sequence">
+                <span class="icon">⏳</span> Unified Timeline
             </button>
 
-            <div class="nav-label" style="margin-top: 14px" onclick="toggleNavGroup(this)">INTELLIGENCE <span class="chev">▾</span></div>
-            <button id="nav-assistant" class="nav" onclick="showAssistantPanel()"
-                title="AI Investigative Copilot & Hypothesis Assistant">
-                <span class="icon">🤖</span> AI Investigation Assistant
+            <div class="nav-label" style="margin-top: 14px">COPILOT & AUDIT</div>
+            <button id="nav-assistant" class="nav" onclick="showAssistantPanel()" title="AI Investigative Copilot & Hypothesis Assistant">
+                <span class="icon">🤖</span> AI Sentinel Copilot
             </button>
-            <button id="nav-report" class="nav" onclick="openReportModal()"
-                title="Generate Official Dossier & Investigation Report">
-                <span class="icon">📑</span> Investigation Report
+            <button id="nav-report" class="nav" onclick="openReportModal()" title="Generate Official Dossier & Investigation Report">
+                <span class="icon">📑</span> Dossier Report
             </button>
-
-            <div class="nav-label" style="margin-top: 14px" onclick="toggleNavGroup(this)">ADMINISTRATION <span class="chev">▾</span></div>
-            <button id="nav-admin" class="nav" onclick="showAdminPanel()"
-                title="Role-Based Access Control & Immutable Audit Trail">
+            <button id="nav-admin" class="nav" onclick="showAdminPanel()" title="Role-Based Access Control & Immutable Audit Trail">
                 <span class="icon">🛡️</span> Admin & Audit Trail
             </button>
 
@@ -3929,7 +4077,7 @@
                 <span class="icon">＋</span> Ingest FIR Report
             </button>
             <button class="nav hidden" onclick="openCdrIngestModal()" title="Ingest Telecom CDR CSV or JSON records">
-                <span class="icon">📥</span> Ingest CDR
+                <span class="icon">📥</span> Ingest CDR CSV
             </button>
             <button class="nav hidden" onclick="openFinancialIngestModal()" title="Ingest Bank & Hawala Transaction Records">
                 <span class="icon">💳</span> Ingest Transactions
@@ -3937,22 +4085,12 @@
             <button class="nav hidden" onclick="reloadGraph()" title="Re-query Knowledge Graph">
                 <span class="icon">↻</span> Refresh Graph
             </button>
-            <button class="nav hidden" onclick="resetDemo()" title="Reset to baseline demonstration dataset">
-                <span class="icon">↺</span> Reset Demo
-            </button>
 
-            <div class="nav-label" style="margin-top: 14px" onclick="toggleNavGroup(this)">SUPPORT <span class="chev">▾</span></div>
-            <button class="nav" onclick="window.open('/docs', '_blank')" title="Open interactive API documentation">
-                <span class="icon">❔</span> Help & API Docs
-            </button>
-
-            <div class="sidebar-footer">
-                <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                    <span class="brand-dot" style="width:6px; height:6px; margin-right:0;"></span>
-                    <span style="font-weight:700; color:#fff; font-size:11px;">Node Sentinel v2.4</span>
+            <div class="sidebar-footer" style="margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06);">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:11px; color:#64748b;">
+                    <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981;"></span>
+                    CYFOCUS ENGINE v1.0 ONLINE
                 </div>
-                Autonomous Intelligence Engine.<br>
-                Click any node to inspect dossier.
             </div>
         </aside>
 
@@ -9690,6 +9828,19 @@ Select a subject or click any suggested prompt below to begin.
             }
 
             // Initialize on load
+            
+            // CyFocus Ctrl+K Shortcut for Global Search
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    const searchInput = document.getElementById('universalSearchInput');
+                    if (searchInput) {
+                        searchInput.focus();
+                        searchInput.select();
+                    }
+                }
+            });
+
             initAuth();
             initMobileLegend();
             reloadGraph();
