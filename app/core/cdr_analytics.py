@@ -515,7 +515,10 @@ class CDRService:
         total_span = (sorted_records[-1].timestamp - sorted_records[0].timestamp).total_seconds()
         total_hours = max(window_hours, total_span / 3600.0)
         baseline_rate_per_window = (len(sorted_records) / total_hours) * window_hours
-        threshold_calls = max(min_calls, int(baseline_rate_per_window * density_multiplier))
+        # Documented investigative rule: flag any window with >= min_calls
+        # calls (>5 calls/24h by default). The baseline density ratio is
+        # retained for severity grading, never for suppressing the flag.
+        threshold_calls = min_calls
 
         bursts: List[CommunicationBurst] = []
         window_delta = timedelta(hours=window_hours)
