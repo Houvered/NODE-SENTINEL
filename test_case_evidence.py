@@ -115,3 +115,16 @@ def test_dataset_quality_gate(setup):
                json={"mapping": {}})
     assert r.status_code == 200, r.text
     assert r.json()["imported"] >= 1
+
+
+def test_document_delete_cascades_imports(setup):
+    c, admin, case_id = setup
+    csv_data = ("calling_number,receiving_number,call_start_time\n"
+                "+913333333333,+914444444444,2026-09-22 08:00:00\n").encode()
+    doc = c.post(f"/api/cases/{case_id}/documents", headers=admin,
+                 files={"file": ("calls3.csv", csv_data, "text/csv")}).json()["document"]["id"]
+    imp = c.post(f"/api/documents/{doc}/process", headers=admin).json()["import_id"]
+    assert c.delete(f"/api/documents/{doc}", headers=admin).status_code == 200
+    # import rows are gone with the file (no orphan mapping screens)
+    assert c.get(f"/api/cases/{case_id}/imports/{imp}", headers=admin).status_code == 404
+    assert c.get(f"/api/cases/{case_id}/imports", headers=admin).json()["imports"] == []

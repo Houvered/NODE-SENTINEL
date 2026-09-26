@@ -352,6 +352,9 @@ class CaseStore:
     def delete_document(self, doc_id: str) -> None:
         with self._lock, self._connect() as con:
             con.execute("DELETE FROM extractions WHERE document_id=?", (doc_id,))
+            con.execute("DELETE FROM data_quality_issues WHERE import_id IN "
+                        "(SELECT id FROM dataset_imports WHERE document_id=?)", (doc_id,))
+            con.execute("DELETE FROM dataset_imports WHERE document_id=?", (doc_id,))
             con.execute("DELETE FROM documents WHERE id=?", (doc_id,))
             con.commit()
 
