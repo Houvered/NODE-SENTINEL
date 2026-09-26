@@ -9,15 +9,44 @@ from app.core.auth_service import (
     get_current_user,
     get_token_from_request,
 )
+from app.config import settings
+from app.core.audit_logger import audit_logger
+from app.models.audit_models import AuditAction
 from app.models.auth_models import (
     LoginRequest,
     LoginResponse,
     ROLE_PERMISSIONS,
+    Role,
     User,
     UserResponse,
 )
+from app.models.case_models import RegisterRequest
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+@router.post("/register", response_model=UserResponse, status_code=201)
+async def register(request: Request, payload: RegisterRequest) -> UserResponse:
+    """Self-service registration. Disabled unless ALLOW_PUBLIC_REGISTER=true.
+
+    New accounts are created read-only (VIEWER) and inactive-safe: an
+    administrator must assign an operational role before case access.
+    """
+    if not settings.ALLOW_PUBLIC_REGISTER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Public registration is disabled. Ask an administrator for an account.")
+    ip = request.client.host if request.client else None
+    try:
+        user = auth_service.register_viewer(username=payload.username,
+                                            password=payload.password,
+                                            full_name=payload.full_name)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    audit_logger.log(action=AuditAction.USER_CREATED, user_id=user.user_id, username=user.username,
+                     role=user.role, resource_type="user", resource_id=user.user_id,
+                     ip_address=ip, status="SUCCESS",
+                     details={"via": "public-register", "role": Role.VIEWER.value})
+    return UserResponse.from_user(user)
 
 
 @router.post("/login", response_model=LoginResponse)

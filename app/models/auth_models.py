@@ -15,6 +15,7 @@ class Role(str, Enum):
     ADMIN = "ADMIN"
     INVESTIGATOR = "INVESTIGATOR"
     ANALYST = "ANALYST"
+    REVIEWER = "REVIEWER"
     VIEWER = "VIEWER"
 
 
@@ -29,6 +30,7 @@ class Permission(str, Enum):
     AI_ASSISTANT = "AI_ASSISTANT"
     GENERATE_REPORT = "GENERATE_REPORT"
     INGEST_DATA = "INGEST_DATA"
+    REVIEW_EXTRACTIONS = "REVIEW_EXTRACTIONS"
     MANAGE_USERS = "MANAGE_USERS"
     VIEW_AUDIT_LOG = "VIEW_AUDIT_LOG"
 
@@ -57,6 +59,7 @@ ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
         Permission.INGEST_DATA,
         Permission.MANAGE_USERS,
         Permission.VIEW_AUDIT_LOG,
+        Permission.REVIEW_EXTRACTIONS,
     ],
     Role.INVESTIGATOR: [
         Permission.VIEW_GRAPH,
@@ -69,6 +72,7 @@ ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
         Permission.AI_ASSISTANT,
         Permission.GENERATE_REPORT,
         Permission.INGEST_DATA,
+        Permission.REVIEW_EXTRACTIONS,
     ],
     Role.ANALYST: [
         Permission.VIEW_GRAPH,
@@ -84,6 +88,14 @@ ROLE_PERMISSIONS: Dict[Role, List[Permission]] = {
         Permission.VIEW_GRAPH,
         Permission.UNIVERSAL_SEARCH,
         Permission.TIMELINE,
+        Permission.VIEW_AUDIT_LOG,
+    ],
+    Role.REVIEWER: [
+        Permission.VIEW_GRAPH,
+        Permission.UNIVERSAL_SEARCH,
+        Permission.TIMELINE,
+        Permission.AI_ASSISTANT,
+        Permission.REVIEW_EXTRACTIONS,
         Permission.VIEW_AUDIT_LOG,
     ],
 }

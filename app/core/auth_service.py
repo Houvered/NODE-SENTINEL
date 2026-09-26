@@ -407,6 +407,18 @@ class AuthService:
             user=user_res,
         )
 
+    def register_viewer(self, username: str, password: str, full_name: Optional[str] = None) -> User:
+        """Self-service signup: always read-only VIEWER, active (admin assigns roles later)."""
+        from app.models.auth_models import CreateUserRequest
+
+        return self.repo.create_user(CreateUserRequest(
+            username=username.strip(),
+            password=password,
+            full_name=(full_name or "").strip() or None,
+            role=Role.VIEWER,
+            is_active=True,
+        ))
+
     def logout(self, token: str, user: Optional[User] = None, ip: Optional[str] = None, user_agent: Optional[str] = None) -> None:
         self.tokens.revoke_token(token)
         if user:
