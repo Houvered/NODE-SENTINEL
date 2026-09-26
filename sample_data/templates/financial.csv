@@ -1,0 +1,3 @@
+transaction_id,sender_account,receiver_account,sender_name,receiver_name,amount,currency,transaction_time,transaction_type,bank_or_provider,source_record_id
+TX-SYN-001,ACC810000001,ACC810000002,Ravi Nair,Faiz Sheikh,250000,INR,2026-09-20 11:00:00,TRANSFER,Axis Bank,LEDGER-001
+TX-SYN-002,ACC810000002,ACC810000003,Faiz Sheikh,Zaid Ansari,120000,INR,2026-09-20 11:05:00,TRANSFER,HDFC Bank,LEDGER-002
