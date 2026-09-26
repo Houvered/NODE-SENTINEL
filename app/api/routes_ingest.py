@@ -105,10 +105,10 @@ def ingest_text(request: IngestTextRequest):
  
 @router.post("/file", response_model=IngestFileResponse)
 async def ingest_file(
-    file: UploadFile = File(..., description="FIR report file (PDF or Image format: png, jpg, jpeg, webp, bmp)"),
+    file: UploadFile = File(..., description="FIR report file (PDF, plain-text .txt/.md, or image: png, jpg, jpeg, webp, bmp)"),
     source_case_id: Optional[str] = Form(None)
 ):
-    """Upload a scanned copy of an FIR (PDF or Image), extract text via OCR, parse entities with NLP, and merge into graph."""
+    """Upload a copy of an FIR (PDF, plain text, or scanned image), extract text via direct decode/OCR, parse entities with NLP, and merge into graph."""
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
 

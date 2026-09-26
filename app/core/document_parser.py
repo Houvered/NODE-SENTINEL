@@ -39,6 +39,7 @@ class DocumentParser:
 
     IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff"}
     PDF_EXTENSIONS = {".pdf"}
+    TEXT_EXTENSIONS = {".txt", ".md", ".log"}
 
     def __init__(self):
         self.winocr_available = WINOCR_AVAILABLE
@@ -53,9 +54,23 @@ class DocumentParser:
             return await self.extract_text_from_pdf(file_bytes)
         elif ext in self.IMAGE_EXTENSIONS:
             return await self.extract_text_from_image(file_bytes)
+        elif ext in self.TEXT_EXTENSIONS:
+            return self.extract_text_from_plain_text(file_bytes, filename)
         else:
-            supported = ", ".join(sorted(self.PDF_EXTENSIONS | self.IMAGE_EXTENSIONS))
+            supported = ", ".join(sorted(self.PDF_EXTENSIONS | self.IMAGE_EXTENSIONS | self.TEXT_EXTENSIONS))
             raise ValueError(f"Unsupported file format '{ext}'. Supported formats are: {supported}")
+
+    @staticmethod
+    def extract_text_from_plain_text(file_bytes: bytes, filename: str = "") -> str:
+        """Direct decode for plain-text FIR narratives (.txt/.md/.log) — no OCR needed."""
+        for encoding in ("utf-8", "latin-1"):
+            try:
+                text = file_bytes.decode(encoding)
+                if text.strip():
+                    return text.strip()
+            except (UnicodeDecodeError, ValueError):
+                continue
+        raise ValueError(f"Could not decode text from '{filename or 'upload'}' as UTF-8 or Latin-1.")
 
     async def extract_text_from_pdf(self, file_bytes: bytes) -> str:
         """Extract text from PDF, automatically falling back to OCR for scanned pages."""
