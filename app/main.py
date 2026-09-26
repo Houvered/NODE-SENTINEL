@@ -25,6 +25,7 @@ from app.api.routes_cases import router as cases_router
 from app.api.routes_case_documents import router as case_documents_router
 from app.api.routes_case_datasets import router as case_datasets_router
 from app.api.routes_case_review import router as case_review_router
+from app.api.routes_case_assistant import router as case_assistant_router
 from app.core.audit_logger import audit_logger
 from app.models.audit_models import AuditAction
 from app.core.graph_engine import get_graph_engine
@@ -170,6 +171,7 @@ app.include_router(cases_router, prefix=settings.API_V1_STR)
 app.include_router(case_documents_router, prefix=settings.API_V1_STR)
 app.include_router(case_datasets_router, prefix=settings.API_V1_STR)
 app.include_router(case_review_router, prefix=settings.API_V1_STR)
+app.include_router(case_assistant_router, prefix=settings.API_V1_STR)
 
 
 # Static Files Setup

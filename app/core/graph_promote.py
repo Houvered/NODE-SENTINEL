@@ -37,11 +37,16 @@ def entity_node_id(etype: str, value: str, normalized: str) -> Optional[str]:
     if not base:
         return None
     if etype == "Phone":
+        # Canonicalize to the national 10-digit form (matches the
+        # syndicate registry convention, e.g. PHONE_9811223344).
         digits = re.sub(r"\D", "", base)
-        if len(digits) == 10:
-            digits = "91" + digits
-        base = "+" + digits if digits else base
-        return f"PHONE_{digits or base}"
+        if len(digits) == 12 and digits.startswith("91"):
+            digits = digits[2:]
+        if len(digits) == 11 and digits.startswith("0"):
+            digits = digits[1:]
+        if digits:
+            return f"PHONE_{digits}"
+        return None
     slug = re.sub(r"[^A-Z0-9+_]", "", base.replace(" ", "_")).strip("_")
     if not slug:
         return None

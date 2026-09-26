@@ -485,6 +485,10 @@ class CaseStore:
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         return self._one("SELECT * FROM chat_sessions WHERE id=?", (session_id,))
 
+    def list_sessions(self, case_id: str, user_id: str) -> List[Dict[str, Any]]:
+        return self._all("SELECT * FROM chat_sessions WHERE case_id=? AND user_id=? ORDER BY created_at DESC",
+                         (case_id, user_id))
+
     def add_message(self, session_id: str, role: str, content: str, citations: str = "[]") -> None:
         self._exec("INSERT INTO chat_messages (session_id,role,content,citations_json,created_at) VALUES (?,?,?,?,?)",
                    (session_id, role, content, citations, _now()))
