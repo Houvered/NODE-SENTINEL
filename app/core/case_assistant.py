@@ -44,6 +44,7 @@ INTENT_REQUIREMENTS = {
         "columns": ["vehicle_registration"]}},
     "network": {"needs": ["reports_or_relationships"], "upload": None},
     "readiness": {"needs": [], "upload": None},
+    "report": {"needs": ["reports_or_relationships"], "upload": None},
 }
 
 
@@ -105,6 +106,8 @@ def classify_intent(query: str) -> str:
     q = query.lower()
     if any(k in q for k in ("missing", "what data", "what do you need", "readiness", "still need")):
         return "readiness"
+    if any(k in q for k in ("report", "dossier", "download")):
+        return "report"
     if any(k in q for k in ("financ", "transaction", "money", "payment", "account")):
         return "financial"
     if any(k in q for k in ("call", "cdr", "phone", "rang", "dialed", "contact number")):
@@ -248,6 +251,20 @@ def answer_query(graph, store, case_id: str, query: str) -> Dict[str, Any]:
         lines += ["", "Limitations:", "- Unreviewed extractions are not in the graph.",
                   "- Requires investigator verification."]
         return {"answer": "\n".join(lines), "evidence": [], "actions": [], "missing": []}
+
+    if intent == "report":
+        subj = None
+        for chunk in re.findall(r"[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+", query):
+            hits = resolve_in_scope(graph, scope, chunk)
+            if hits:
+                subj = hits[0].name
+                break
+        return {"answer": f"Answer:\nI can generate a downloadable report for {subj or 'this case'} "
+                         f"from its reviewed evidence ({ready['nodes']} entities, {ready['edges']} "
+                         f"relationships). The report lists data sources, evidence references, "
+                         f"missing-data gaps, and limitations, and requires investigator interpretation. "
+                         f"Open the Reports tab to generate it.",
+                "evidence": [], "actions": ["OPEN_REPORTS"], "missing": []}
 
     req = INTENT_REQUIREMENTS.get(intent, {})
     missing = [n for n in req.get("needs", []) if not ready["has"].get(n)]

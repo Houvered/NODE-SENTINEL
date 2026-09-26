@@ -87,7 +87,13 @@ def review_extraction(case_id: str, extraction_id: str, payload: ReviewAction,
     _audit(request, "RELATIONSHIP_APPROVED" if ext["kind"] == "relationship" else "ENTITY_APPROVED",
            user, case_id, resource_id=extraction_id,
            details={"kind": ext["kind"], "from": ext["review_status"], "to": payload.review_status})
-    return {"extraction": updated}
+    promoted = any(e.id in (f"EXT_{extraction_id}", f"EXT_CASE_{extraction_id}")
+                   for e in get_graph_engine().get_all_edges())
+    return {"extraction": updated,
+            "already_promoted": promoted,
+            "note": ("This extraction already contributed to the graph; rebuild the graph to apply "
+                     "the new review state. Renaming a promoted entity does not move its node — "
+                     "merge duplicates instead.") if promoted else ""}
 
 
 @router.get("/cases/{case_id}/duplicates")
