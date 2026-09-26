@@ -100,6 +100,22 @@ async def lifespan(fastapi_app: FastAPI):
     except Exception as e:
         logger.warning(f"Could not auto-seed demo financial data: {e}")
 
+    # Unify ALL sample sources into one connected graph: merge demo_graph
+    # (Ring B), auto-ingest demo CDR bursts, bridge PaySim/hawala/shell
+    # accounts, stand up Ring C operators, and link every scored email
+    # fraud case to handlers across the three criminal rings.
+    try:
+        from app.core.unified_seed import run_unified_seed
+        _seed_summary["unified"] = run_unified_seed(graph)
+        rings = _seed_summary["unified"].get("rings", [])
+        logger.info("Unified seed rings_ok=%s nodes=%s edges=%s :: %s",
+                    _seed_summary["unified"].get("rings_ok"),
+                    _seed_summary["unified"].get("nodes"),
+                    _seed_summary["unified"].get("edges"),
+                    "; ".join(f"{r['label']}:{r.get('person_count', 0)}p/{r.get('status')}" for r in rings))
+    except Exception as e:
+        logger.warning(f"Unified seeding failed, continuing with base graph: {e}")
+
     yield
 
     audit_logger.log(
